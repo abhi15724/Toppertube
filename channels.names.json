@@ -1,0 +1,626 @@
+[
+ {
+  "name": "Physics Wallah",
+  "category": "School (India)"
+ },
+ {
+  "name": "Magnet Brains",
+  "category": "School (India)"
+ },
+ {
+  "name": "Vedantu",
+  "category": "School (India)"
+ },
+ {
+  "name": "Unacademy",
+  "category": "School (India)"
+ },
+ {
+  "name": "Khan Academy India",
+  "category": "School (India)"
+ },
+ {
+  "name": "LearnoHub",
+  "category": "School (India)"
+ },
+ {
+  "name": "Dear Sir",
+  "category": "School (India)"
+ },
+ {
+  "name": "NCERT Official",
+  "category": "School (India)"
+ },
+ {
+  "name": "Doubtnut",
+  "category": "School (India)"
+ },
+ {
+  "name": "Study with Sudhir",
+  "category": "School (India)"
+ },
+ {
+  "name": "PW Foundation",
+  "category": "School (India)"
+ },
+ {
+  "name": "StudyIQ IAS",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Drishti IAS",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Vision IAS",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Unacademy UPSC",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Adda247",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "wifistudy",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Rojgar with Ankit",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Khan GS Research Centre",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Utkarsh Classes",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Exampur",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "SSC Adda247",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "Testbook",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "GATE Wallah",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "NEET Wallah",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "JEE Wallah",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "English Connection",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "English with Rani Ma'am",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "TsMadaan",
+  "category": "Exam Prep"
+ },
+ {
+  "name": "CodeWithHarry",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Apna College",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Krish Naik",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "CampusX",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Gate Smashers",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Jenny's Lectures CS IT",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Telusko",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Chai aur Code",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Hitesh Choudhary",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "WsCube Tech",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Intellipaat",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Simplilearn",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Great Learning",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Edureka",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Soch by Mohak Mangal",
+  "category": "History & GK"
+ },
+ {
+  "name": "Dhruv Rathee",
+  "category": "History & GK"
+ },
+ {
+  "name": "Nitish Rajput",
+  "category": "History & GK"
+ },
+ {
+  "name": "Abhi and Niyu",
+  "category": "History & GK"
+ },
+ {
+  "name": "The Lallantop",
+  "category": "History & GK"
+ },
+ {
+  "name": "Think School",
+  "category": "History & GK"
+ },
+ {
+  "name": "StudyIQ",
+  "category": "History & GK"
+ },
+ {
+  "name": "Praveen Mohan",
+  "category": "History & GK"
+ },
+ {
+  "name": "GetsetflySCIENCE",
+  "category": "History & GK"
+ },
+ {
+  "name": "FactTechz",
+  "category": "History & GK"
+ },
+ {
+  "name": "Veritasium",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Kurzgesagt – In a Nutshell",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "3Blue1Brown",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Vsauce",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Mark Rober",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "SmarterEveryDay",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "MinutePhysics",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Numberphile",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Physics Girl",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "SciShow",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "The Action Lab",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Steve Mould",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Brilliant",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "CrashCourse",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "TED-Ed",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "freeCodeCamp.org",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Fireship",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Computerphile",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Two Minute Papers",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Andrej Karpathy",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "DeepLearningAI",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "sentdex",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Corey Schafer",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Tech With Tim",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "NetworkChuck",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "The Coding Train",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Sebastian Lague",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "AI Explained",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Yannic Kilcher",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "RealLifeLore",
+  "category": "History & GK"
+ },
+ {
+  "name": "Wendover Productions",
+  "category": "History & GK"
+ },
+ {
+  "name": "Oversimplified",
+  "category": "History & GK"
+ },
+ {
+  "name": "History Matters",
+  "category": "History & GK"
+ },
+ {
+  "name": "The Infographics Show",
+  "category": "History & GK"
+ },
+ {
+  "name": "History Hit",
+  "category": "History & GK"
+ },
+ {
+  "name": "Kings and Generals",
+  "category": "History & GK"
+ },
+ {
+  "name": "Epic History TV",
+  "category": "History & GK"
+ },
+ {
+  "name": "The Armchair Historian",
+  "category": "History & GK"
+ },
+ {
+  "name": "Fall of Civilizations",
+  "category": "History & GK"
+ },
+ {
+  "name": "Geography Now",
+  "category": "History & GK"
+ },
+ {
+  "name": "Johnny Harris",
+  "category": "History & GK"
+ },
+ {
+  "name": "Vox",
+  "category": "History & GK"
+ },
+ {
+  "name": "PBS Eons",
+  "category": "History & GK"
+ },
+ {
+  "name": "National Geographic",
+  "category": "History & GK"
+ },
+ {
+  "name": "The Plain Bagel",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Patrick Boyle",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Economics Explained",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "How Money Works",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Modern MBA",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Company Man",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "ColdFusion",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Business Casual",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "The Swedish Investor",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Alex Hormozi",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Y Combinator",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Stanford Graduate School of Business",
+  "category": "Business & Finance"
+ },
+ {
+  "name": "Corridor Crew",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Film Riot",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Blender Guru",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "This Guy Edits",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Cinecom.net",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Daniel Schiffer",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Peter McKinnon",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Casey Neistat",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "StudioBinder",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "The Film Look",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "RocketJump Film School",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "ActionVFX",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "CG Geek",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Ducky 3D",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Video Copilot",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "BBC Learning English",
+  "category": "English"
+ },
+ {
+  "name": "English with Lucy",
+  "category": "English"
+ },
+ {
+  "name": "Dr. Najeeb",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Osmosis",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Ninja Nerd",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Biology at Ease",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Amoeba Sisters",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Bozeman Science",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Bharat Panchal",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Tyler DeWitt",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "The Organic Chemistry Tutor",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Maths by Rakesh Yadav",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Eddie Woo",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Professor Leonard",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Physics Galaxy",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Flipping Physics",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Michel van Biezen",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Scott Manley",
+  "category": "Science & Maths"
+ },
+ {
+  "name": "Network Kings",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Professor Messer",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "John Hammond",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Design Pilot",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Satori Graphics",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "The Futur",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Blender Hindi",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "30X40 Design Workshop",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "The B1M",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Architectural Digest",
+  "category": "Creative & Design"
+ },
+ {
+  "name": "Dr. Praveen Tripathi",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Psych2Go",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Sprouts",
+  "category": "Health & Psychology"
+ },
+ {
+  "name": "Khan GS",
+  "category": "History & GK"
+ }
+]
