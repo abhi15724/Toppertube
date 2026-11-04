@@ -517,15 +517,15 @@
  },
  {
   "name": "Biology at Ease",
-  "category": "Science & Maths"
+  "category": "Biology"
  },
  {
   "name": "Amoeba Sisters",
-  "category": "Science & Maths"
+  "category": "Biology"
  },
  {
   "name": "Bozeman Science",
-  "category": "Science & Maths"
+  "category": "Biology"
  },
  {
   "name": "Bharat Panchal",
@@ -622,5 +622,81 @@
  {
   "name": "Khan GS",
   "category": "History & GK"
+ },
+ {
+  "name": "Armando Hasudungan",
+  "category": "Biology"
+ },
+ {
+  "name": "Seep Pahuja",
+  "category": "Biology"
+ },
+ {
+  "name": "Speed Pharmacology",
+  "category": "Pharmacy"
+ },
+ {
+  "name": "Pharma Pathshala",
+  "category": "Pharmacy"
+ },
+ {
+  "name": "Pharmacy Wallah",
+  "category": "Pharmacy"
+ },
+ {
+  "name": "CA Rachana Phadke Ranade",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Accounting Stuff",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Commerce Baba",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Edspira",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Zerodha Varsity",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Aswath Damodaran",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Pranjal Kamra",
+  "category": "Commerce & Accounts"
+ },
+ {
+  "name": "Neso Academy",
+  "category": "Engineering"
+ },
+ {
+  "name": "NPTEL",
+  "category": "Engineering"
+ },
+ {
+  "name": "Learn Engineering",
+  "category": "Engineering"
+ },
+ {
+  "name": "The Engineering Mindset",
+  "category": "Engineering"
+ },
+ {
+  "name": "Raj Shamani",
+  "category": "Podcasts"
+ },
+ {
+  "name": "PowerfulJRE",
+  "category": "Podcasts"
+ },
+ {
+  "name": "Nikhil Kamath",
+  "category": "Podcasts"
  }
 ]

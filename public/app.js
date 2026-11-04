@@ -26,6 +26,8 @@ const IC = {
   moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
   clip: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>'
 };
 const ico = n => el('span', { html: `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>` });
@@ -35,10 +37,10 @@ const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSO
              set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
 /* ---------- saved state: lives only in this browser, no login ---------- */
-const DEF = { follow: [], liked: [], later: [], hist: [], lists: [], notes: {}, meta: {}, bad: [], prof: { ch: {}, cat: {}, kw: {} }, theme: 'auto' };
+const DEF = { certs: {}, name: '', courses: [], prog: {}, podcasts: true, follow: [], liked: [], later: [], hist: [], lists: [], notes: {}, meta: {}, bad: [], prof: { ch: {}, cat: {}, kw: {} }, theme: 'auto' };
 const S = Object.assign(structuredClone(DEF), LS.get('tt2', {}));
 const save = () => LS.set('tt2', S);
-const remember = v => { S.meta[v.id] = { id: v.id, title: v.title, channel: v.channel, category: v.category, seconds: v.seconds, views: v.views, publishedAt: v.publishedAt }; };
+const remember = v => { S.meta[v.id] = { id: v.id, title: v.title, channel: v.channel, category: v.category, seconds: v.seconds, views: v.views, publishedAt: v.publishedAt, ext: v.ext }; };
 
 /* ---------- formatting ---------- */
 const fmtDur = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
@@ -88,14 +90,43 @@ function related(v, n = 12) {
     .filter(x => (cnt[x.channel] = (cnt[x.channel] || 0) + 1) <= 3).slice(0, n);
 }
 
+/* ---------- search: forgiving, ranked by relevance ---------- */
+const GENERIC = new Set('course courses tutorial tutorials full lecture lectures class classes learn video videos free complete the and for with how what why from into best new part series playlist'.split(' '));
+const SYN = { ai: ['artificial intelligence', 'machine learning', 'deep learning', 'llm', 'gpt'], ml: ['machine learning'], dsa: ['data structures', 'algorithms'],
+  js: ['javascript'], os: ['operating system'], dbms: ['database'], cpp: ['c++'], maths: ['math', 'mathematics'], math: ['maths', 'mathematics'] };
+const wordsOf = t => String(t).toLowerCase().match(/[\p{L}\p{N}+#]+/gu) || [];
+const stem = w => w.length > 5 ? w.replace(/(ing|es|ed|s)$/, '') : w;
+const wmatch = (h, q) => h === q || (q.length >= 4 && h.length >= 4 && (stem(h).startsWith(stem(q)) || stem(q).startsWith(stem(h))));
+// Returns a function: video -> relevance score (0 = no match). Generic words like "course" never block a match,
+// at least half of the real words must match, and AI/ML-style shorthand is expanded.
+function makeMatcher(query) {
+  const all = wordsOf(query), core = all.filter(w => !GENERIC.has(w)), qs = core.length ? core : all;
+  const need = Math.max(1, Math.ceil(qs.length * 0.5));
+  const hasAll = (ws, a) => a.every(x => ws.some(h => wmatch(h, x)));
+  return v => {
+    const tw = wordsOf(v.title), ow = wordsOf(v.channel + ' ' + v.category), dw = v.d ? wordsOf(v.d) : [];
+    let got = 0, pts = 0;
+    for (const q of qs) {
+      let hit = 0;
+      [[q], ...(SYN[q] || []).map(wordsOf)].forEach((a, i) => {
+        const w = i ? 0.7 : 1;
+        hit = Math.max(hit, hasAll(tw, a) ? 2 * w : hasAll(ow, a) ? w : dw.length && hasAll(dw, a) ? 0.6 * w : 0);
+      });
+      if (hit) { got++; pts += hit; }
+    }
+    if (got < need) return 0;
+    return pts + all.filter(w => GENERIC.has(w) && tw.some(h => wmatch(h, w))).length * 0.3 + got / qs.length;
+  };
+}
+
 /* ---------- data + routing ---------- */
 let CAT = [], V = new Map(), CATS = [], CHANS = [], LIB = {}, loadError = '';
 const getV = id => V.get(id) || S.meta[id];
 const main = $('#main'), dlg = $('#dlg');
 const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
-let FLUSH = null, YTP = null;
+let FLUSH = null, YTP = null, TICK = null;
 const PAGES = {};
-const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
+const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
 function route() {
@@ -103,7 +134,7 @@ function route() {
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
   const page = PAGES[parts[0]] ? parts[0] : 'home', arg = decodeURIComponent(parts.slice(1).join('/'));
-  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels' }[page] || page;
+  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', quiz: 'courses', certificate: 'courses', verify: 'courses' }[page] || page;
   document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === '#/' + navKey ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   main.replaceChildren(); document.body.classList.remove('navopen');
   if (!CAT.length && ['home', 'longs', 'cats', 'cat', 'channels', 'channel', 'search', 'watch'].includes(page)) {
@@ -130,7 +161,7 @@ function card(v, o = {}) {
     return w;
   }
   w.append(el('a', { href }, thumb, el('div', { class: 'ct' }, v.title)),
-    el('div', { class: 'cm' }, el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), o.note ? el('div', { class: 'cm', style: 'font-style:italic;margin-top:2px' }, o.note) : null);
+    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), o.note ? el('div', { class: 'cm', style: 'font-style:italic;margin-top:2px' }, o.note) : null);
   const b = el('button', { class: 'cb', type: 'button', onclick: () => {
     if (o.remove) o.remove(); else b.textContent = toggle('later', v, 2) ? '✓ Saved' : 'Watch later';
   } }, o.remove ? 'Remove' : (S.later.includes(v.id) ? '✓ Saved' : 'Watch later'));
@@ -182,7 +213,8 @@ function listPage(title, get, o = {}) {
 }
 
 /* ---------- pages ---------- */
-PAGES.home = () => listPage('', () => CAT, { ranked: true, chips: true });
+PAGES.home = () => listPage('', () => CAT.filter(v => v.category !== 'Podcasts' || F.cat === 'Podcasts' || (S.prof.cat.Podcasts || 0) > 1), { ranked: true, chips: true });
+PAGES.podcasts = () => listPage('Podcasts', () => CAT.filter(v => v.category === 'Podcasts'), { ranked: true, empty: 'No podcasts loaded yet. Add podcast channels to channels.json (see README).' });
 PAGES.longs = () => listPage('Longs', () => CAT.filter(v => v.seconds >= 1200), { ranked: true });
 PAGES.liked = () => listPage('Liked', () => S.liked.map(getV).filter(Boolean), { list: 'liked', empty: 'Nothing liked yet. Open a lesson and tap Like.', remove: v => { S.liked = S.liked.filter(x => x !== v.id); save(); } });
 PAGES.later = () => listPage('Watch later', () => S.later.map(getV).filter(Boolean), { list: 'later', empty: 'Nothing saved yet. Use “Watch later” on any lesson.', remove: v => { S.later = S.later.filter(x => x !== v.id); save(); } });
@@ -265,9 +297,25 @@ PAGES.channel = arg => {
   main.append(el('div', { class: 'row', style: 'margin-top:20px' }, lb, sb, st)); upd();
 };
 PAGES.search = arg => {
-  const t = arg.toLowerCase().split(/\s+/).filter(Boolean);
   toks(arg).forEach(k => S.prof.kw[k] = (S.prof.kw[k] || 0) + 1); save();
-  listPage(`Results for “${arg}”`, () => CAT.filter(v => { const h = (v.title + ' ' + v.channel + ' ' + v.category).toLowerCase(); return t.every(w => h.includes(w)); }), { ranked: true, empty: 'No lessons found. Try fewer or different words.' });
+  const m = makeMatcher(arg);
+  const get = () => CAT.map(v => [v, m(v)]).filter(x => x[1] > 0).sort((a, b) => (b[1] + score(b[0]) * 0.1) - (a[1] + score(a[0]) * 0.1)).map(x => x[0]);
+  listPage(`Results for “${arg}”`, get, { empty: 'No lessons in our channels match yet. Try “Search more on YouTube” below.' });
+  const box = el('div'), st = el('span', { class: 'mut', role: 'status' });
+  const btn = el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Search more on YouTube');
+  main.append(el('div', { class: 'row', style: 'margin-top:24px' }, btn, st), box);
+  async function go() {
+    btn.disabled = true; st.textContent = 'Searching YouTube…';
+    try {
+      const r = await fetch('/api/search?q=' + encodeURIComponent(arg)), d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Request failed');
+      const items = d.items.filter(v => !S.bad.includes(v.id));
+      items.forEach(v => { v.ext = true; if (!V.has(v.id)) V.set(v.id, v); });
+      box.replaceChildren(el('h3', null, 'More from YouTube'), el('p', { class: 'mut' }, 'These videos are from channels outside our trusted list.'),
+        items.length ? el('div', { class: 'grid' }, items.map(v => card(v))) : msg('Nothing more found.'));
+      st.textContent = ''; btn.hidden = true;
+    } catch (e) { st.textContent = e.message; btn.disabled = false; }
+  }
 };
 
 /* playlists */
@@ -356,6 +404,7 @@ function noteBox(key, info, o = {}) {
   drawChips();
   return el('div', null, el('div', { class: 'hd' }, el('div', { class: 'row' }, stamp, st), el('div', { class: 'row' }, el('span', { class: 'mut' }, 'Download:'), ex('txt'), ex('md'), ex('pdf'))), ta, chips);
 }
+const noteHref = k => { if (k.startsWith('c:')) { const m = k.split(':'); return '#/learn/' + m[1] + '/' + encodeURIComponent(m.slice(2).join(':')); } return getV(k) ? '#/watch/' + k : ''; };
 PAGES.notes = () => {
   let NEW = null; const open = new Set(), box = el('div');
   main.append(el('div', { class: 'top' }, el('h2', null, 'My notes'), el('div', { class: 'row' },
@@ -376,7 +425,7 @@ PAGES.notes = () => {
       if (open.has(k)) { box.append(editor(k, n)); return; }
       box.append(el('div', { class: 'nrow' }, el('b', null, n.title), el('p', { class: 'mut' }, n.sub || ''), el('p', null, n.text.length > 220 ? n.text.slice(0, 220) + '…' : n.text),
         el('div', { class: 'row' }, el('button', { class: 'btn', type: 'button', onclick: () => { open.add(k); draw(); } }, 'Edit'),
-          getV(k) ? el('a', { class: 'btn', href: '#/watch/' + k }, 'Open lesson') : null,
+          noteHref(k) ? el('a', { class: 'btn', href: noteHref(k) }, 'Open lesson') : null,
           ...['txt', 'md', 'pdf'].map(f => el('button', { class: 'btn', type: 'button', onclick: () => exportNotes([k], f) }, f === 'pdf' ? 'PDF' : '.' + f)),
           el('button', { class: 'btn', type: 'button', onclick: () => { if (confirm('Delete this note?')) { delete S.notes[k]; save(); draw(); } } }, 'Delete'))));
     });
@@ -385,7 +434,7 @@ PAGES.notes = () => {
 };
 
 /* ---------- watch page ---------- */
-function stopPlayer() { try { YTP && YTP.destroy && YTP.destroy(); } catch (e) {} YTP = null; }
+function stopPlayer() { clearInterval(TICK); TICK = null; try { YTP && YTP.destroy && YTP.destroy(); } catch (e) {} YTP = null; }
 function loadYT() {
   if (window.YT && YT.Player) return Promise.resolve();
   return new Promise((res, rej) => {
@@ -427,8 +476,9 @@ PAGES.watch = (id, q) => {
   side.append(el('h3', null, 'Up next for you'), ...related(v).map(x => card(x, { small: true })));
   main.append(el('div', { class: 'watch' },
     el('div', null, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, v.title),
-      el('div', { class: 'mut' }, el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`),
+      el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`),
       el('div', { class: 'acts' }, likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
+        el('button', { class: 'btn', type: 'button', onclick: () => makeCourseHere(v) }, ico('book'), 'Make a course'),
         el('a', { class: 'btn', href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener' }, 'Open on YouTube')),
       el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
         noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }))),
@@ -445,7 +495,8 @@ PAGES.settings = () => {
       for (const k of Object.keys(DEF)) if (k in d && typeof d[k] === typeof DEF[k] && Array.isArray(d[k]) === Array.isArray(DEF[k])) S[k] = d[k];
       save(); alert('Backup restored.'); location.reload(); } catch (x) { alert('That file is not a ToppperTube backup.'); } } });
   const b = (t, f) => el('button', { class: 'btn', type: 'button', onclick: f }, t);
-  main.append(el('div', { class: 'row' }, el('label', null, 'Theme ', th)),
+  const pc = el('input', { type: 'checkbox', onchange: e => { S.podcasts = e.target.checked; save(); location.reload(); } }); pc.checked = S.podcasts;
+  main.append(el('div', { class: 'row' }, el('label', null, 'Theme ', th)), el('div', { class: 'row', style: 'margin-top:12px' }, el('label', { class: 'row' }, pc, 'Show podcasts (they may contain mature language)')),
     el('p', { class: 'mut' }, 'Your likes, history, playlists, notes and recommendations are saved only in this browser, with no login. Download a backup to keep them safe or move them to another device.'),
     el('div', { class: 'row' }, b('Download backup', () => download('toppertube-backup.json', JSON.stringify(S), 'application/json')), b('Restore backup', () => file.click()), file),
     el('h3', null, 'Recommendations'), el('p', { class: 'mut' }, 'The Home page learns from what you watch, like and save. You can start fresh any time.'),
@@ -461,7 +512,7 @@ function applyTheme() {
 $('#menuBtn').append(ico('menu')); $('#sb').append(ico('search')); $('#themeBtn').append(ico('moon'));
 $('#menuBtn').onclick = () => document.body.classList.toggle(innerWidth > 900 ? 'nonav' : 'navopen');
 $('#themeBtn').onclick = () => { S.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); };
-$('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (q) location.hash = '#/search/' + encodeURIComponent(q); };
+$('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } location.hash = '#/search/' + encodeURIComponent(q); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
 addEventListener('hashchange', route);
 
@@ -470,7 +521,7 @@ addEventListener('hashchange', route);
   try {
     const r = await fetch('/api/feed'), d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Request failed');
-    CAT = d.items.filter(v => !S.bad.includes(v.id)); CATS = d.categories || []; CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
+    CAT = d.items.filter(v => !S.bad.includes(v.id) && (S.podcasts || v.category !== 'Podcasts')); CATS = d.categories || []; CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
   } catch (e) { loadError = e.message; }
   route();
 })();
