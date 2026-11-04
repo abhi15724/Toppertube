@@ -128,7 +128,7 @@ PAGES.courses = (arg, q) => {
     return el('a', { class: 'tile', href: '#/course/' + c.id }, el('b', null, c.title), el('span', { class: 'mut' }, `${lessonsOf(c).length} lessons · ${n}% complete${S.certs[c.id] ? ' · Certified' : ''}`), bar(n)); }))
     : msg('No courses yet. Create one above and it will appear here.'));
   const certs = Object.entries(S.certs);
-  if (certs.length) main.append(el('h3', null, 'My certificates'), el('div', { class: 'tiles' }, certs.map(([id, k]) => el('a', { class: 'tile', href: '#/certificate/' + id }, el('b', null, k.c), el('span', { class: 'mut' }, `${k.n} · ${k.s}% · ${fmtDate(k.d)}`)))));
+  if (certs.length) main.append(el('h3', null, 'My certificates'), el('div', { class: 'tiles' }, certs.map(([id, k]) => el('a', { class: 'tile', href: '#/certificate/' + id }, el('b', null, k.c), el('span', { class: 'mut' }, `${k.n} · ${fmtDate(k.d)}`)))));
   // featured (curated in courses.json)
   const feat = el('div'); main.append(feat);
   api('/api/courses').then(list => {
@@ -154,14 +154,14 @@ PAGES.course = id => {
   function drawHead() {
     const ls = lessonsOf(c), p = prog(id), done = ls.filter(x => p.done[lk(x)]).length, n = pctOf(c), cl = contOf(c);
     head.replaceChildren(el('div', { class: 'top' }, el('h2', null, c.title), el('div', { class: 'row' },
-      S.certs[id] ? el('a', { class: 'btn pri', href: '#/certificate/' + id }, 'View certificate') : n === 100 ? el('a', { class: 'btn pri', href: '#/quiz/' + id }, 'Take final assessment') : null,
+      n === 100 ? el('a', { class: 'btn pri', href: '#/certificate/' + id }, S.certs[id] ? 'View certificate' : 'Get your certificate') : null,
       cl ? el('a', { class: n === 100 ? 'btn' : 'btn pri', href: learnHref(c, cl) }, n === 100 ? 'Review lessons' : done ? 'Continue' : 'Start course') : null,
       el('button', { class: 'btn', type: 'button', onclick: () => { edit = !edit; draw(); } }, edit ? 'Done editing' : 'Edit structure'),
       el('button', { class: 'btn', type: 'button', onclick: outline }, 'Outline (.md)'),
       el('button', { class: 'btn', type: 'button', onclick: () => exportNotes(noteKeys(), 'md') }, 'My notes (.md)'),
       el('button', { class: 'btn', type: 'button', onclick: () => exportNotes(noteKeys(), 'pdf') }, 'Notes PDF'),
       el('button', { class: 'btn', type: 'button', onclick: del }, 'Delete'))),
-      bar(n), el('p', { class: 'mut' }, `${done} of ${ls.length} lessons complete · ${n}%` + (S.certs[id] ? ' · Course completed and certified' : n === 100 ? ' · Final assessment unlocked: pass with 80% to get your certificate' : ' · Finish all lessons to unlock the final assessment')), c.note ? el('p', { class: 'mut' }, c.note) : null);
+      bar(n), el('p', { class: 'mut' }, `${done} of ${ls.length} lessons complete · ${n}%` + (S.certs[id] ? ' · Course completed and certified' : n === 100 ? ' · Course complete! Get your certificate' : ' · Finish all lessons to get your certificate')), ...(c.note ? [el('p', { class: 'mut' }, c.note)] : []));
   }
   const swap = (a, i, d) => { const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; save(); draw(); };
   const ib = (t, label, f) => el('button', { class: 'btn', type: 'button', 'aria-label': label, onclick: f }, t);
@@ -213,7 +213,7 @@ PAGES.learn = arg => {
   remember(v); p.last = k; S.hist = [l.v, ...S.hist.filter(x => x !== l.v)].slice(0, 200); bump(v, 1); save();
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' }), side = el('aside');
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
-  const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else if (pctOf(c) === 100) location.hash = '#/course/' + cid; };
+  const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else if (pctOf(c) === 100) location.hash = '#/certificate/' + cid; };
   const outline = () => side.replaceChildren(el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
     ...c.modules.map(mm => el('div', null, el('b', { style: 'display:block;margin:10px 0 4px' }, mm.title),
       ...mm.lessons.map(x => el('a', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), href: learnHref(c, x), 'aria-current': x === l ? 'true' : null },
@@ -235,7 +235,7 @@ PAGES.learn = arg => {
   };
   loadYT().then(() => {
     if (!box.isConnected) return;
-    YTP = new YT.Player(box, { videoId: l.v, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, start: l.s || 0 },
+    YTP = new YT.Player(box, { videoId: l.v, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: l.s || 0 },
       events: { onStateChange: e => { if (e.data === 0 && !fin) { fin = true; setDone(true); goNext(); } }, onError: blocked } });
     TICK = setInterval(() => {
       try {
@@ -244,17 +244,18 @@ PAGES.learn = arg => {
         else if (!l.e && dur > 0 && t >= dur * 0.92) setDone(true);                      // watched 92% of a whole video
       } catch (e) {}
     }, 1000);
-  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${l.v}?autoplay=1&rel=0&start=${l.s || 0}`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: l.t })));
+  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${l.v}?autoplay=1&rel=0&fs=0&start=${l.s || 0}`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: l.t })));
   const time = () => { try { return Math.floor(YTP.getCurrentTime()); } catch (e) { return 0; } };
   const seek = t => { try { YTP.seekTo(t, true); YTP.playVideo(); } catch (e) {} };
-  main.append(el('div', { class: 'watch' },
-    el('div', null, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, l.t),
-      el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`),
-      el('div', { class: 'acts' }, doneB,
-        i > 0 ? el('a', { class: 'btn', href: learnHref(c, ls[i - 1]) }, '← Previous') : null, i + 1 < ls.length ? el('a', { class: 'btn pri', href: learnHref(c, ls[i + 1]) }, 'Next lesson →') : null,
-        likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
-        el('a', { class: 'btn', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, target: '_blank', rel: 'noopener' }, 'Open on YouTube')),
-      el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
-        noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }))),
-    side));
+  const acts = el('div', { class: 'acts' }, doneB,
+    i > 0 ? el('a', { class: 'btn', href: learnHref(c, ls[i - 1]) }, '← Previous') : null, i + 1 < ls.length ? el('a', { class: 'btn pri', href: learnHref(c, ls[i + 1]) }, 'Next lesson →') : null,
+    likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
+    el('a', { class: 'btn', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
+  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, l.t),
+    el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
+  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
+    noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }));
+  const lay = layoutBox(vcol, notes), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  acts.append(...layoutButtons(wrap, lay.enter));
+  main.append(wrap);
 };

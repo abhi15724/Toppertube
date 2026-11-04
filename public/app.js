@@ -37,7 +37,7 @@ const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSO
              set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
 /* ---------- saved state: lives only in this browser, no login ---------- */
-const DEF = { certs: {}, name: '', courses: [], prog: {}, podcasts: true, follow: [], liked: [], later: [], hist: [], lists: [], notes: {}, meta: {}, bad: [], prof: { ch: {}, cat: {}, kw: {} }, theme: 'auto' };
+const DEF = { split: true, certs: {}, name: '', courses: [], prog: {}, podcasts: true, follow: [], liked: [], later: [], hist: [], lists: [], notes: {}, meta: {}, bad: [], prof: { ch: {}, cat: {}, kw: {} }, theme: 'auto' };
 const S = Object.assign(structuredClone(DEF), LS.get('tt2', {}));
 const save = () => LS.set('tt2', S);
 const remember = v => { S.meta[v.id] = { id: v.id, title: v.title, channel: v.channel, category: v.category, seconds: v.seconds, views: v.views, publishedAt: v.publishedAt, ext: v.ext }; };
@@ -124,17 +124,18 @@ let CAT = [], V = new Map(), CATS = [], CHANS = [], LIB = {}, loadError = '';
 const getV = id => V.get(id) || S.meta[id];
 const main = $('#main'), dlg = $('#dlg');
 const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
-let FLUSH = null, YTP = null, TICK = null;
+let FLUSH = null, YTP = null, TICK = null, EXITFS = null;
 const PAGES = {};
 const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
 function route() {
+  if (EXITFS) EXITFS();
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
   const page = PAGES[parts[0]] ? parts[0] : 'home', arg = decodeURIComponent(parts.slice(1).join('/'));
-  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', quiz: 'courses', certificate: 'courses', verify: 'courses' }[page] || page;
+  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', certificate: 'courses' }[page] || page;
   document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === '#/' + navKey ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   main.replaceChildren(); document.body.classList.remove('navopen');
   if (!CAT.length && ['home', 'longs', 'cats', 'cat', 'channels', 'channel', 'search', 'watch'].includes(page)) {
@@ -161,7 +162,7 @@ function card(v, o = {}) {
     return w;
   }
   w.append(el('a', { href }, thumb, el('div', { class: 'ct' }, v.title)),
-    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), o.note ? el('div', { class: 'cm', style: 'font-style:italic;margin-top:2px' }, o.note) : null);
+    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), ...(o.note ? [el('div', { class: 'cm', style: 'font-style:italic;margin-top:2px' }, o.note)] : []));
   const b = el('button', { class: 'cb', type: 'button', onclick: () => {
     if (o.remove) o.remove(); else b.textContent = toggle('later', v, 2) ? '✓ Saved' : 'Watch later';
   } }, o.remove ? 'Remove' : (S.later.includes(v.id) ? '✓ Saved' : 'Watch later'));
@@ -214,7 +215,25 @@ function listPage(title, get, o = {}) {
 
 /* ---------- pages ---------- */
 PAGES.home = () => listPage('', () => CAT.filter(v => v.category !== 'Podcasts' || F.cat === 'Podcasts' || (S.prof.cat.Podcasts || 0) > 1), { ranked: true, chips: true });
-PAGES.podcasts = () => listPage('Podcasts', () => CAT.filter(v => v.category === 'Podcasts'), { ranked: true, empty: 'No podcasts loaded yet. Add podcast channels to channels.json (see README).' });
+// Raj Shamani, Joe Rogan and Nikhil Kamath. If one of them did not load with the channel feed, their latest long episodes
+// are searched on YouTube instead, so this page is never empty (costs 100 quota units per search, cached 24 hours).
+const PODS = [{ name: 'Raj Shamani', test: /raj ?shamani/i, q: 'raj shamani figuring out podcast' },
+  { name: 'Joe Rogan', test: /powerfuljre|joe rogan/i, q: 'joe rogan experience full episode' },
+  { name: 'Nikhil Kamath', test: /nikhil ?kamath/i, q: 'nikhil kamath wtf podcast full episode' }];
+PAGES.podcasts = () => {
+  listPage('Podcasts', () => CAT.filter(v => v.category === 'Podcasts'), { ranked: true, empty: 'No podcast episodes are loaded yet.' });
+  const missing = PODS.filter(p => !CAT.some(v => v.category === 'Podcasts' && p.test.test(v.channel)));
+  if (!missing.length) return;
+  const box = el('div', null, msg('Loading podcast episodes from YouTube…')); main.append(box);
+  Promise.all(missing.map(p => fetch('/api/search?q=' + encodeURIComponent(p.q)).then(r => r.ok ? r.json() : { items: [] })
+    .then(d => (d.items || []).filter(v => v.seconds >= 1200 && (p.test.test(v.channel) || p.test.test(v.title))).slice(0, 12)).catch(() => [])))
+    .then(groups => {
+      const items = groups.flat().filter(v => !S.bad.includes(v.id));
+      items.forEach(v => { v.ext = true; v.category = 'Podcasts'; if (!V.has(v.id)) V.set(v.id, v); });
+      box.replaceChildren(items.length ? el('div', null, el('h3', null, 'More podcast episodes from YouTube'), el('div', { class: 'grid' }, items.map(v => card(v))))
+        : msg('Could not load podcast episodes right now. Please try again later.'));
+    });
+};
 PAGES.longs = () => listPage('Longs', () => CAT.filter(v => v.seconds >= 1200), { ranked: true });
 PAGES.liked = () => listPage('Liked', () => S.liked.map(getV).filter(Boolean), { list: 'liked', empty: 'Nothing liked yet. Open a lesson and tap Like.', remove: v => { S.liked = S.liked.filter(x => x !== v.id); save(); } });
 PAGES.later = () => listPage('Watch later', () => S.later.map(getV).filter(Boolean), { list: 'later', empty: 'Nothing saved yet. Use “Watch later” on any lesson.', remove: v => { S.later = S.later.filter(x => x !== v.id); save(); } });
@@ -366,7 +385,7 @@ function printNotes(items) {
   const f = el('iframe', { style: 'position:fixed;right:0;bottom:0;width:0;height:0;border:0', title: 'print' });
   document.body.append(f);
   const d = f.contentDocument; d.open();
-  d.write(`<!doctype html><meta charset="utf-8"><title>ToppperTube notes</title><style>body{font:14px/1.6 system-ui,"Segoe UI",sans-serif;margin:28px;color:#111}h1{font-size:20px;margin:0 0 2px}.s{color:#555;font-size:12px;margin-bottom:12px;word-break:break-all}pre{white-space:pre-wrap;font:inherit;margin:0}section{break-after:page}section:last-child{break-after:auto}</style>` +
+  d.write(`<!doctype html><meta charset="utf-8"><title>Toppertube notes</title><style>body{font:14px/1.6 system-ui,"Segoe UI",sans-serif;margin:28px;color:#111}h1{font-size:20px;margin:0 0 2px}.s{color:#555;font-size:12px;margin-bottom:12px;word-break:break-all}pre{white-space:pre-wrap;font:inherit;margin:0}section{break-after:page}section:last-child{break-after:auto}</style>` +
     items.map(n => `<section><h1>${esc(n.title)}</h1><div class="s">${esc(n.sub || '')}</div><pre>${esc(n.text)}</pre></section>`).join(''));
   d.close();
   setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 3000); }, 300);
@@ -433,6 +452,33 @@ PAGES.notes = () => {
   draw();
 };
 
+/* ---------- notes beside the video, and full screen that keeps the notes next to it ---------- */
+function layoutBox(vcol, notes) {   // box = video column + notes panel
+  const box = el('div', { class: 'fsbox' }, vcol, notes), exitB = el('button', { class: 'btn pri exitfs', type: 'button', hidden: '' }, 'Exit full screen');
+  box.append(exitB);
+  let on = false;
+  const onKey = e => { if (e.key === 'Escape') exit(); };
+  function exit() {
+    if (!on) return; on = false; EXITFS = null;
+    box.classList.remove('fsmode'); document.body.classList.remove('fsbody'); exitB.hidden = true; document.removeEventListener('keydown', onKey);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+  function enter() {
+    on = true; EXITFS = exit; box.classList.add('fsmode'); document.body.classList.add('fsbody'); exitB.hidden = false; document.addEventListener('keydown', onKey);
+    if (box.requestFullscreen) box.requestFullscreen().catch(() => {});   // hides the browser bars too; the CSS mode still works without it
+  }
+  exitB.onclick = exit;
+  box.addEventListener('fullscreenchange', () => { if (on && !document.fullscreenElement) exit(); });
+  return { box, enter };
+}
+function layoutButtons(wrap, enter) {
+  const sb = el('button', { class: 'btn', type: 'button' });
+  const sync = () => { sb.textContent = S.split ? 'Notes below video' : 'Notes beside video'; wrap.classList.toggle('split', S.split); };
+  sb.onclick = () => { S.split = !S.split; save(); sync(); };
+  sync();
+  return [sb, el('button', { class: 'btn', type: 'button', onclick: enter }, 'Full screen + notes')];
+}
+
 /* ---------- watch page ---------- */
 function stopPlayer() { clearInterval(TICK); TICK = null; try { YTP && YTP.destroy && YTP.destroy(); } catch (e) {} YTP = null; }
 function loadYT() {
@@ -464,9 +510,9 @@ PAGES.watch = (id, q) => {
   };
   loadYT().then(() => {
     if (!box.isConnected) return;
-    YTP = new YT.Player(box, { videoId: v.id, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1 },
+    YTP = new YT.Player(box, { videoId: v.id, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0 },
       events: { onStateChange: e => { if (e.data === 0) { bump(v, 2); save(); next(); } }, onError: blocked } });
-  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: v.title })));
+  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&fs=0`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: v.title })));
   const time = () => { try { return Math.floor(YTP.getCurrentTime()); } catch (e) { return 0; } };
   const seek = t => { try { YTP.seekTo(t, true); YTP.playVideo(); } catch (e) {} };
   const side = el('aside');
@@ -474,15 +520,16 @@ PAGES.watch = (id, q) => {
     side.append(el('h3', null, `Playlist: ${listName(list)} (${idx + 1}/${ids.length})`), ...ids.map(getV).filter(Boolean).map(x => card(x, { list, small: true, cur: x.id === v.id })));
   }
   side.append(el('h3', null, 'Up next for you'), ...related(v).map(x => card(x, { small: true })));
-  main.append(el('div', { class: 'watch' },
-    el('div', null, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, v.title),
-      el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`),
-      el('div', { class: 'acts' }, likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
-        el('button', { class: 'btn', type: 'button', onclick: () => makeCourseHere(v) }, ico('book'), 'Make a course'),
-        el('a', { class: 'btn', href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener' }, 'Open on YouTube')),
-      el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
-        noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }))),
-    side));
+  const acts = el('div', { class: 'acts' }, likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
+    el('button', { class: 'btn', type: 'button', onclick: () => makeCourseHere(v) }, ico('book'), 'Make a course'),
+    el('a', { class: 'btn', href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
+  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, v.title),
+    el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`), acts);
+  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
+    noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }));
+  const lay = layoutBox(vcol, notes), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  acts.append(...layoutButtons(wrap, lay.enter));
+  main.append(wrap);
 };
 
 /* ---------- settings ---------- */
@@ -493,14 +540,14 @@ PAGES.settings = () => {
   const file = el('input', { type: 'file', accept: 'application/json', hidden: '', onchange: async e => {
     try { const d = JSON.parse(await e.target.files[0].text());
       for (const k of Object.keys(DEF)) if (k in d && typeof d[k] === typeof DEF[k] && Array.isArray(d[k]) === Array.isArray(DEF[k])) S[k] = d[k];
-      save(); alert('Backup restored.'); location.reload(); } catch (x) { alert('That file is not a ToppperTube backup.'); } } });
+      save(); alert('Backup restored.'); location.reload(); } catch (x) { alert('That file is not a Toppertube backup.'); } } });
   const b = (t, f) => el('button', { class: 'btn', type: 'button', onclick: f }, t);
   const pc = el('input', { type: 'checkbox', onchange: e => { S.podcasts = e.target.checked; save(); location.reload(); } }); pc.checked = S.podcasts;
   main.append(el('div', { class: 'row' }, el('label', null, 'Theme ', th)), el('div', { class: 'row', style: 'margin-top:12px' }, el('label', { class: 'row' }, pc, 'Show podcasts (they may contain mature language)')),
     el('p', { class: 'mut' }, 'Your likes, history, playlists, notes and recommendations are saved only in this browser, with no login. Download a backup to keep them safe or move them to another device.'),
     el('div', { class: 'row' }, b('Download backup', () => download('toppertube-backup.json', JSON.stringify(S), 'application/json')), b('Restore backup', () => file.click()), file),
     el('h3', null, 'Recommendations'), el('p', { class: 'mut' }, 'The Home page learns from what you watch, like and save. You can start fresh any time.'),
-    el('div', { class: 'row' }, b('Reset recommendations', () => { if (confirm('Forget what ToppperTube learned about your interests?')) { S.prof = structuredClone(DEF.prof); save(); alert('Done.'); } })),
+    el('div', { class: 'row' }, b('Reset recommendations', () => { if (confirm('Forget what Toppertube learned about your interests?')) { S.prof = structuredClone(DEF.prof); save(); alert('Done.'); } })),
     el('h3', null, 'Delete everything'), el('div', { class: 'row' }, b('Delete all my data', () => { if (confirm('Delete likes, history, playlists and notes from this browser?')) { localStorage.removeItem('tt2'); location.hash = '#/home'; location.reload(); } })));
 };
 
@@ -521,7 +568,7 @@ addEventListener('hashchange', route);
   try {
     const r = await fetch('/api/feed'), d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Request failed');
-    CAT = d.items.filter(v => !S.bad.includes(v.id) && (S.podcasts || v.category !== 'Podcasts')); CATS = d.categories || []; CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
+    CAT = d.items.filter(v => !S.bad.includes(v.id) && (S.podcasts || v.category !== 'Podcasts')); CATS = (d.categories || []).filter(c => CAT.some(v => v.category === c)); CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
   } catch (e) { loadError = e.message; }
   route();
 })();

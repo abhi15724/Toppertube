@@ -2,6 +2,6 @@
   "name": "toppertube",
   "version": "2.0.0",
   "private": true,
-  "description": "ToppperTube: automatic education video feed with playlists and recommendations, for Vercel",
+  "description": "Toppertube: automatic education video feed with playlists and recommendations, for Vercel",
   "engines": { "node": ">=18" }
 }

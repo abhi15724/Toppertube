@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ToppperTube – YouTube for learning</title>
+<title>Toppertube – YouTube for learning</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style>
 :root{--bg:#fdfdfb;--fg:#0f0f0f;--mut:#606060;--card:#f1f1ee;--hov:#e8e8e4;--line:#dcdcd6;--acc:#d62839}
 [data-theme=dark]{--bg:#0f1115;--fg:#f1f1f1;--mut:#a8abb3;--card:#1a1d24;--hov:#272b34;--line:#2c313b;--acc:#ff5a6a}
@@ -52,7 +55,6 @@ select,input[type=text]{padding:8px 10px;border:1px solid var(--line);border-rad
 .panel textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px;margin:8px 0}
 .bar{height:8px;border-radius:6px;background:var(--card);overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--acc)}
 .lesson{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--line)}.lesson>a,.lesson>span:nth-child(2){flex:1}
-.qf{border:1px solid var(--line);border-radius:12px;margin:0 0 12px;padding:10px 14px}.qf.wrong{border-color:var(--acc);border-width:2px}.qf legend{font-weight:600;padding:0 6px}
 .certbox{max-width:900px;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}.certbox svg{width:100%;height:auto;display:block}
 .lesson.cur{background:var(--card);border-radius:8px}.lesson.done{color:var(--mut)}
 .lesson input[type=text]{flex:1;min-width:0}
@@ -69,6 +71,22 @@ select,input[type=text]{padding:8px 10px;border:1px solid var(--line);border-rad
 h1.vt{font-size:20px;margin:14px 0 4px;line-height:1.3}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .notes{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.notes{display:flex;flex-direction:column}.notes>div{display:flex;flex-direction:column;flex:1;min-height:0}
+.fsbox{position:relative}.exitfs{position:absolute;top:10px;right:10px;z-index:3}
+.watch.split{grid-template-columns:minmax(0,1fr)}
+.watch.split .fsbox{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start}
+.watch.split .notes{margin-top:0;position:sticky;top:72px;height:calc(100vh - 92px)}
+.watch.split .nt{flex:1;resize:none}
+.watch.split>div+aside{margin-top:8px}
+.fsbox.fsmode{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;padding:12px;align-items:stretch;overflow:hidden}
+.fsmode .vcol{display:flex;flex-direction:column;min-height:0}
+.fsmode .frame{flex:1;aspect-ratio:auto;border-radius:10px;min-height:0}
+.fsmode .vt,.fsmode .vcol .mut,.fsmode .acts{display:none}
+.fsmode .notes{margin:0;height:100%;position:static;overflow:auto}
+.fsmode .nt{flex:1;resize:none}
+body.fsbody{overflow:hidden}
+@media(max-width:1000px){.watch.split .fsbox{display:block}.watch.split .notes{position:static;height:auto;margin-top:14px}.watch.split .nt{min-height:200px}}
+@media(max-width:800px){.fsbox.fsmode{grid-template-columns:1fr;grid-template-rows:42% 1fr}}
 .notes .hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
 .nt{width:100%;min-height:200px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
@@ -93,6 +111,6 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 <dialog id="dlg"></dialog>
 <script src="app.js"></script>
 <script src="courses.js"></script>
-<script src="quiz.js"></script>
+<script src="certificate.js"></script>
 </body>
 </html>

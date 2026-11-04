@@ -4,7 +4,7 @@ const { getCatalog } = require('../lib/catalog');
 module.exports = async (req, res) => {
   try {
     const c = await getCatalog();
-    res.setHeader('Cache-Control', 'public, s-maxage=10800, stale-while-revalidate=86400');
+    res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
     res.status(200).json(c);
   } catch (e) {
     console.error(e);
