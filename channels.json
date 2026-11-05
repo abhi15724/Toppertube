@@ -9,6 +9,11 @@
   "category": "School (India)",
   "handle": "PhysicsWallah"
  },
+  {
+  "name": "AI Engineer",
+  "category": "AI",
+  "handle": "aiDotEngineer"
+ },
  {
   "name": "Magnet Brains",
   "category": "School (India)"
@@ -659,6 +664,10 @@
   "category": "Pharmacy"
  },
  {
+  "name": "imperfect pharmacy",
+  "category": "Pharmacy"
+ },
+ {
   "name": "Accounting Stuff",
   "category": "Commerce & Accounts"
  },
@@ -730,6 +739,10 @@
  },
  {
   "name": "The Net Ninja",
+  "category": "Programming & Tech"
+ },
+ {
+  "name": "Google Cloud Tech",
   "category": "Programming & Tech"
  },
  {

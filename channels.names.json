@@ -4,6 +4,11 @@
   "category": "School (India)"
  },
  {
+  "name": "AI Engineer",
+  "category": "AI",
+  "handle": "aiDotEngineer"
+ },
+ {
   "name": "Magnet Brains",
   "category": "School (India)"
  },
@@ -114,6 +119,10 @@
  {
   "name": "TsMadaan",
   "category": "Exam Prep"
+ },
+ {
+  "name": "Google Cloud Tech",
+  "category": "Programming & Tech"
  },
  {
   "name": "CodeWithHarry",
@@ -627,6 +636,10 @@
  {
   "name": "Seep Pahuja",
   "category": "Biology"
+ },
+ {
+  "name": "imperfect pharmacy",
+  "category": "Pharmacy"
  },
  {
   "name": "Speed Pharmacology",
