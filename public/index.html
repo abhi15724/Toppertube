@@ -7,6 +7,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="preload" href="/feed.json" as="fetch" crossorigin>
 <style>
 :root{--bg:#fdfdfb;--fg:#0f0f0f;--mut:#606060;--card:#f1f1ee;--hov:#e8e8e4;--line:#dcdcd6;--acc:#d62839}
 [data-theme=dark]{--bg:#0f1115;--fg:#f1f1f1;--mut:#a8abb3;--card:#1a1d24;--hov:#272b34;--line:#2c313b;--acc:#ff5a6a}
@@ -72,21 +74,33 @@ h1.vt{font-size:20px;margin:14px 0 4px;line-height:1.3}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .notes{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
 .notes{display:flex;flex-direction:column}.notes>div{display:flex;flex-direction:column;flex:1;min-height:0}
-.fsbox{position:relative}.exitfs{position:absolute;top:10px;right:10px;z-index:3}
+.fsbox{position:relative}
 .watch.split{grid-template-columns:minmax(0,1fr)}
 .watch.split .fsbox{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start}
 .watch.split .notes{margin-top:0;position:sticky;top:72px;height:calc(100vh - 92px)}
 .watch.split .nt{flex:1;resize:none}
 .watch.split>div+aside{margin-top:8px}
-.fsbox.fsmode{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;padding:12px;align-items:stretch;overflow:hidden}
-.fsmode .vcol{display:flex;flex-direction:column;min-height:0}
-.fsmode .frame{flex:1;aspect-ratio:auto;border-radius:10px;min-height:0}
-.fsmode .vt,.fsmode .vcol .mut,.fsmode .acts{display:none}
-.fsmode .notes{margin:0;height:100%;position:static;overflow:auto}
-.fsmode .nt{flex:1;resize:none}
 body.fsbody{overflow:hidden}
 @media(max-width:1000px){.watch.split .fsbox{display:block}.watch.split .notes{position:static;height:auto;margin-top:14px}.watch.split .nt{min-height:200px}}
-@media(max-width:800px){.fsbox.fsmode{grid-template-columns:1fr;grid-template-rows:42% 1fr}}
+/* Full screen: a top bar, then the video (left, fills all the space) and the notes (right). The "body" prefix makes these win over the split layout. */
+.fsbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fsbar .fst{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body .watch .fsbox.fsmode{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;grid-template-columns:minmax(0,1fr) 390px;grid-template-rows:auto minmax(0,1fr);gap:10px 16px;padding:12px;align-items:stretch;overflow:hidden}
+body .watch .fsbox.fsmode .fsbar{grid-column:1 / -1}
+body .watch .fsbox.fsmode .vcol{display:flex;flex-direction:column;min-height:0;min-width:0}
+body .watch .fsbox.fsmode .frame{flex:1 1 auto;position:relative;aspect-ratio:auto;min-height:0;border-radius:10px}
+body .watch .fsbox.fsmode .frame iframe,body .watch .fsbox.fsmode .frame>div{position:absolute;inset:0;width:100%;height:100%}
+body .watch .fsbox.fsmode .vt,body .watch .fsbox.fsmode .vcol .mut,body .watch .fsbox.fsmode .acts{display:none}
+body .watch .fsbox.fsmode .notes{position:static;margin:0;height:auto;min-height:0;overflow:auto}
+body .watch .fsbox.fsmode .nt{flex:1;resize:none}
+@media(max-width:1000px){body .watch .fsbox.fsmode{display:grid}}
+@media(max-width:800px){body .watch .fsbox.fsmode{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 42% minmax(0,1fr)}}
+.err:empty{display:none}
+/* course page: play buttons and notes */
+.play{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff}
+.lesson>a.play{flex:none}.play:hover{filter:brightness(1.12)}.play svg.i{width:16px;height:16px;margin-left:2px}
+.howto{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 14px}.howto summary{cursor:pointer;font-weight:600}
+.howto ol,.panel ol{margin:8px 0 2px;padding-left:20px}.howto li,.panel li{margin:4px 0}
 .notes .hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
 .nt{width:100%;min-height:200px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
@@ -109,8 +123,8 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 </header>
 <div class="shell"><nav id="nav" aria-label="Main"></nav><main id="main" tabindex="-1"></main></div>
 <dialog id="dlg"></dialog>
-<script src="app.js"></script>
-<script src="courses.js"></script>
-<script src="certificate.js"></script>
+<script defer src="app.js?v=1"></script>
+<script defer src="courses.js?v=1"></script>
+<script defer src="certificate.js?v=1"></script>
 </body>
 </html>

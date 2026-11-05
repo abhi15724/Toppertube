@@ -1,1 +1,10 @@
-{ "functions": { "api/*.js": { "maxDuration": 60 } } }
+{
+  "buildCommand": "node scripts/build-feed.js",
+  "outputDirectory": "public",
+  "functions": { "api/*.js": { "maxDuration": 60 } },
+  "headers": [
+    { "source": "/(app|courses|certificate).js", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/(favicon|favicon-32).png", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000" }] },
+    { "source": "/feed.json", "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400" }] }
+  ]
+}

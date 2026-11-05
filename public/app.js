@@ -26,6 +26,7 @@ const IC = {
   moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
   clip: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>'
@@ -51,7 +52,12 @@ const ago = v => { const d = ageDays(v); if (d < 1) return 'today'; if (d < 30) 
 
 /* ---------- recommendation engine (runs in the browser; learns from this device only) ---------- */
 const STOP = new Set('the and for with how what why this that your you from part lecture lesson class full video new best into are not can all any one two'.split(' '));
-const toks = t => [...new Set((String(t).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || []).filter(w => !STOP.has(w)))];
+const TOKC = new Map();   // remembered results: thousands of titles are tokenised again on every screen otherwise
+const toks = t => {
+  const s = String(t); let r = TOKC.get(s);
+  if (!r) { r = [...new Set((s.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || []).filter(w => !STOP.has(w)))]; if (TOKC.size > 20000) TOKC.clear(); TOKC.set(s, r); }
+  return r;
+};
 function bump(v, w) {
   const p = S.prof;
   for (const m of [p.ch, p.cat, p.kw]) for (const k in m) { m[k] *= 0.97; if (Math.abs(m[k]) < 0.05) delete m[k]; }
@@ -94,7 +100,12 @@ function related(v, n = 12) {
 const GENERIC = new Set('course courses tutorial tutorials full lecture lectures class classes learn video videos free complete the and for with how what why from into best new part series playlist'.split(' '));
 const SYN = { ai: ['artificial intelligence', 'machine learning', 'deep learning', 'llm', 'gpt'], ml: ['machine learning'], dsa: ['data structures', 'algorithms'],
   js: ['javascript'], os: ['operating system'], dbms: ['database'], cpp: ['c++'], maths: ['math', 'mathematics'], math: ['maths', 'mathematics'] };
-const wordsOf = t => String(t).toLowerCase().match(/[\p{L}\p{N}+#]+/gu) || [];
+const WORDC = new Map();
+const wordsOf = t => {
+  const s = String(t); let r = WORDC.get(s);
+  if (!r) { r = s.toLowerCase().match(/[\p{L}\p{N}+#]+/gu) || []; if (WORDC.size > 20000) WORDC.clear(); WORDC.set(s, r); }
+  return r;
+};
 const stem = w => w.length > 5 ? w.replace(/(ing|es|ed|s)$/, '') : w;
 const wmatch = (h, q) => h === q || (q.length >= 4 && h.length >= 4 && (stem(h).startsWith(stem(q)) || stem(q).startsWith(stem(h))));
 // Returns a function: video -> relevance score (0 = no match). Generic words like "course" never block a match,
@@ -131,6 +142,7 @@ const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', '
 
 function route() {
   if (EXITFS) EXITFS();
+  UPDLINE = null;
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
@@ -154,7 +166,7 @@ function toggle(arr, v, w) {
 const chanHref = c => '#/channel/' + encodeURIComponent(c);
 function card(v, o = {}) {
   const href = '#/watch/' + v.id + (o.list ? '?list=' + encodeURIComponent(o.list) : '');
-  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', loading: 'lazy' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null);
+  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', loading: 'lazy', decoding: 'async' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null);
   const stats = `${fmtViews(v.views)} views • ${ago(v)}`;
   const w = el('div', { class: 'cw' + (o.small ? ' sm' : '') + (o.cur ? ' cur' : '') });
   if (o.small) {
@@ -214,7 +226,24 @@ function listPage(title, get, o = {}) {
 }
 
 /* ---------- pages ---------- */
-PAGES.home = () => listPage('', () => CAT.filter(v => v.category !== 'Podcasts' || F.cat === 'Podcasts' || (S.prof.cat.Podcasts || 0) > 1), { ranked: true, chips: true });
+// "Lessons updated 2 hours ago" line on Home. It changes by itself when the live feed arrives.
+let UPDLINE = null;
+const sinceStr = iso => {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000)), n = (k, w) => `${k} ${w}${k === 1 ? '' : 's'} ago`;
+  return m < 1 ? 'just now' : m < 60 ? n(m, 'minute') : m < 1440 ? n(Math.round(m / 60), 'hour') : n(Math.round(m / 1440), 'day');
+};
+function updText() {
+  if (!UPDLINE) return;
+  UPDLINE.hidden = !FEEDAT;
+  if (!FEEDAT) return;
+  const chs = new Set(CAT.map(v => v.channel)).size;
+  UPDLINE.textContent = `Lessons updated ${sinceStr(FEEDAT)} · ${CAT.length.toLocaleString()} lessons from ${chs} channels`;
+  UPDLINE.title = new Date(FEEDAT).toLocaleString();
+}
+PAGES.home = () => {
+  UPDLINE = el('p', { class: 'mut', style: 'font-size:13px;margin:2px 0 10px' }); updText(); main.append(UPDLINE);
+  listPage('', () => CAT.filter(v => v.category !== 'Podcasts' || F.cat === 'Podcasts' || (S.prof.cat.Podcasts || 0) > 1), { ranked: true, chips: true });
+};
 // Raj Shamani, Joe Rogan and Nikhil Kamath. If one of them did not load with the channel feed, their latest long episodes
 // are searched on YouTube instead, so this page is never empty (costs 100 quota units per search, cached 24 hours).
 const PODS = [{ name: 'Raj Shamani', test: /raj ?shamani/i, q: 'raj shamani figuring out podcast' },
@@ -453,18 +482,19 @@ PAGES.notes = () => {
 };
 
 /* ---------- notes beside the video, and full screen that keeps the notes next to it ---------- */
-function layoutBox(vcol, notes) {   // box = video column + notes panel
-  const box = el('div', { class: 'fsbox' }, vcol, notes), exitB = el('button', { class: 'btn pri exitfs', type: 'button', hidden: '' }, 'Exit full screen');
-  box.append(exitB);
+function layoutBox(vcol, notes, title = '') {   // box = (full-screen top bar) + video column + notes panel
+  const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
+  const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
+  const box = el('div', { class: 'fsbox' }, bar, vcol, notes);
   let on = false;
   const onKey = e => { if (e.key === 'Escape') exit(); };
   function exit() {
     if (!on) return; on = false; EXITFS = null;
-    box.classList.remove('fsmode'); document.body.classList.remove('fsbody'); exitB.hidden = true; document.removeEventListener('keydown', onKey);
+    box.classList.remove('fsmode'); document.body.classList.remove('fsbody'); bar.hidden = true; document.removeEventListener('keydown', onKey);
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }
   function enter() {
-    on = true; EXITFS = exit; box.classList.add('fsmode'); document.body.classList.add('fsbody'); exitB.hidden = false; document.addEventListener('keydown', onKey);
+    on = true; EXITFS = exit; box.classList.add('fsmode'); document.body.classList.add('fsbody'); bar.hidden = false; document.addEventListener('keydown', onKey);
     if (box.requestFullscreen) box.requestFullscreen().catch(() => {});   // hides the browser bars too; the CSS mode still works without it
   }
   exitB.onclick = exit;
@@ -527,7 +557,7 @@ PAGES.watch = (id, q) => {
     el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }));
-  const lay = layoutBox(vcol, notes), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  const lay = layoutBox(vcol, notes, v.title), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
 };
@@ -563,12 +593,26 @@ $('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); i
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
 addEventListener('hashchange', route);
 
+let FEEDAT = '';
+function applyFeed(d) {
+  const old = V;
+  CAT = d.items.filter(v => !S.bad.includes(v.id) && (S.podcasts || v.category !== 'Podcasts'));
+  CATS = (d.categories || []).filter(c => CAT.some(v => v.category === c)); CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
+  for (const [k, x] of old) if (!V.has(k)) V.set(k, x);      // keep videos opened from channel libraries, searches and courses
+  FEEDAT = d.updatedAt || '';
+  if (UPDLINE && UPDLINE.isConnected) updText();
+}
+async function getJSON(url) { const r = await fetch(url), d = await r.json(); if (!r.ok) throw new Error(d.error || 'Request failed'); return d; }
 (async () => {
   applyTheme();
-  try {
-    const r = await fetch('/api/feed'), d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Request failed');
-    CAT = d.items.filter(v => !S.bad.includes(v.id) && (S.podcasts || v.category !== 'Podcasts')); CATS = (d.categories || []).filter(c => CAT.some(v => v.category === c)); CHANS = d.channels || []; V = new Map(CAT.map(v => [v.id, v]));
-  } catch (e) { loadError = e.message; }
-  route();
+  main.replaceChildren(msg('Loading lessons…'));
+  // 1) /feed.json is a plain static file made at deploy time, so the page can show lessons almost instantly
+  let snap = null;
+  try { snap = await getJSON('/feed.json'); applyFeed(snap); route(); } catch (e) { snap = null; }
+  // 2) the live feed (/api/feed) is only needed when there is no snapshot or it is more than 6 hours old; it is applied quietly
+  //    and shows up on the next page change, so the screen never jumps while someone is reading
+  if (!snap || Date.now() - new Date(snap.updatedAt || 0) > 6 * 3600e3) {
+    try { applyFeed(await getJSON('/api/feed')); } catch (e) { if (!snap) loadError = e.message; }
+    if (!snap) route();
+  }
 })();

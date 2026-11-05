@@ -15,7 +15,8 @@ Use Settings > Download backup to move them to another device.
 ## Setup
 1. Get a YouTube Data API v3 key (Google Cloud Console, free) and restrict it to that API.
 2. Push this folder to GitHub, import it in Vercel (framework "Other", no build command).
-3. In Vercel > Settings > Environment Variables add  YT_API_KEY  = your key. Deploy.
+3. In Vercel > Settings > Environment Variables add  YT_API_KEY  = your key, with Production, Preview and Development ticked (the
+   deploy-time build uses it too). Deploy.
    Never write the key into a file: anything in GitHub can be read. Nothing else is required.
 Local test: `npm i -g vercel`, create .env.local with YT_API_KEY=..., run `vercel dev`.
 
@@ -37,11 +38,21 @@ Podcasts stay out of Home until a student watches one. Settings can hide them (t
 ## Courses and certificates
 Courses > Create a course builds a curriculum with modules, lessons and a progress bar from a playlist, a long video (chapters from the
 description, or 20-minute parts) or several links. Lessons complete automatically and move on; "Edit structure" reorders and regroups.
-Every lesson has notes, Like, Watch later and Add to playlist. Open any YouTube link from the search bar or Courses; "Make a course"
+Every lesson has a red play button, notes, Like, Watch later and Add to playlist. The course page starts with a short
+"How to use this course" note, and when the course is complete it shows the steps to get the certificate. Open any YouTube link from the search bar or Courses; "Make a course"
 converts any video.
 When every lesson is complete, "Get your certificate" asks for the student's name and course name and creates a certificate
 (PDF via the print window, or PNG). The certificate is made in the browser from the student's own progress, so it is a completion
 certificate, not a verified credential.
+
+## Speed
+- At deploy time scripts/build-feed.js (the "buildCommand" in vercel.json) writes public/feed.json: the whole lesson list as a plain static
+  file, so lessons appear almost instantly with no wait for YouTube. It also writes channels.resolved.json so the server skips channel look-ups.
+- The browser starts downloading feed.json while the scripts load, scripts are deferred and cached for a year (they are version-stamped
+  on every deploy, so updates still arrive), and thumbnails connect early and load lazily.
+- The live feed (/api/feed) is only asked for when the snapshot is missing or more than 6 hours old, and it is applied quietly on the next
+  page change. To refresh the snapshot, redeploy (Vercel > Deployments > Redeploy). The build log lists any channels that could not be matched.
+- Without YT_API_KEY at build time there is no snapshot: the site still works, it just loads from /api/feed (slower on the very first visit).
 
 ## Notes beside the video
 On every video and lesson page the notes sit beside the player (toggle "Notes below video" for the old layout). "Full screen + notes"

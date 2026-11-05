@@ -147,7 +147,20 @@ PAGES.courses = (arg, q) => {
 PAGES.course = id => {
   const c = S.courses.find(x => x.id === id);
   if (!c) { main.append(msg('Course not found.'), el('a', { class: 'btn', href: '#/courses' }, 'All courses')); return; }
-  let edit = false; const head = el('div'), box = el('div'); main.append(head, box);
+  let edit = false; const head = el('div'), box = el('div');
+  const doneNow = lessonsOf(c).filter(x => prog(id).done[lk(x)]).length;
+  const howto = el('details', { class: 'howto', open: doneNow === 0 ? '' : null }, el('summary', null, 'How to use this course'), el('ol', null,
+    el('li', null, 'Press the red ▶ button next to a lesson (or “Start course”) to play it.'),
+    el('li', null, 'Write notes in the panel beside the video. “Add timestamp” saves the moment you are watching; click a timestamp later to jump back to it. Notes save by themselves, and you can download them as .txt, .md or PDF.'),
+    el('li', null, 'Use “Full screen + notes” to study with the video and your notes side by side.'),
+    el('li', null, 'Each lesson is ticked off automatically when you finish it, and then the next one starts. You can also tick lessons yourself.'),
+    el('li', null, '“Edit structure” lets you rename, reorder or regroup lessons.'),
+    el('li', null, 'Finish every lesson to get your certificate.')));
+  const certNote = () => el('div', { class: 'panel' }, el('b', null, S.certs[id] ? 'Your certificate is ready.' : 'Course complete! Here is how to get your certificate:'),
+    S.certs[id] ? el('p', { class: 'mut' }, 'Press “View certificate” at the top of this page. You can always find it again under Courses → My certificates.')
+      : el('ol', null, el('li', null, 'Press “Get your certificate” at the top of this page.'), el('li', null, 'Type your name, check the course name, then press “Create my certificate”.'),
+          el('li', null, 'Download it as a PDF or an image. Later you can open it from Courses → My certificates.')));
+  main.append(head, howto, box);
   const noteKeys = () => lessonsOf(c).map(l => `c:${id}:${lk(l)}`).filter(k => S.notes[k]);
   const outline = () => download(slug(c.title) + '-outline.md', `# ${c.title}\n\n` + c.modules.map((m, i) => `## ${i + 1}. ${m.title}\n\n` + m.lessons.map((l, j) => `${j + 1}. ${l.t}${l.d ? ' (' + fmtDur(l.d) + ')' : ''}`).join('\n')).join('\n\n') + '\n', 'text/markdown;charset=utf-8');
   const del = () => { if (confirm(`Delete the course “${c.title}”? Your notes stay in Notes.`)) { S.courses = S.courses.filter(x => x !== c); delete S.prog[id]; save(); location.hash = '#/courses'; } };
@@ -155,13 +168,13 @@ PAGES.course = id => {
     const ls = lessonsOf(c), p = prog(id), done = ls.filter(x => p.done[lk(x)]).length, n = pctOf(c), cl = contOf(c);
     head.replaceChildren(el('div', { class: 'top' }, el('h2', null, c.title), el('div', { class: 'row' },
       n === 100 ? el('a', { class: 'btn pri', href: '#/certificate/' + id }, S.certs[id] ? 'View certificate' : 'Get your certificate') : null,
-      cl ? el('a', { class: n === 100 ? 'btn' : 'btn pri', href: learnHref(c, cl) }, n === 100 ? 'Review lessons' : done ? 'Continue' : 'Start course') : null,
+      cl ? el('a', { class: n === 100 ? 'btn' : 'btn pri', href: learnHref(c, cl) }, n === 100 ? 'Review lessons' : [ico('play'), done ? 'Continue' : 'Start course']) : null,
       el('button', { class: 'btn', type: 'button', onclick: () => { edit = !edit; draw(); } }, edit ? 'Done editing' : 'Edit structure'),
       el('button', { class: 'btn', type: 'button', onclick: outline }, 'Outline (.md)'),
       el('button', { class: 'btn', type: 'button', onclick: () => exportNotes(noteKeys(), 'md') }, 'My notes (.md)'),
       el('button', { class: 'btn', type: 'button', onclick: () => exportNotes(noteKeys(), 'pdf') }, 'Notes PDF'),
       el('button', { class: 'btn', type: 'button', onclick: del }, 'Delete'))),
-      bar(n), el('p', { class: 'mut' }, `${done} of ${ls.length} lessons complete · ${n}%` + (S.certs[id] ? ' · Course completed and certified' : n === 100 ? ' · Course complete! Get your certificate' : ' · Finish all lessons to get your certificate')), ...(c.note ? [el('p', { class: 'mut' }, c.note)] : []));
+      bar(n), el('p', { class: 'mut' }, `${done} of ${ls.length} lessons complete · ${n}%` + (S.certs[id] ? ' · Course completed and certified' : n === 100 ? ' · Course complete! Get your certificate' : ' · Finish all lessons to get your certificate')), ...(c.note ? [el('p', { class: 'mut' }, c.note)] : []), ...(n === 100 ? [certNote()] : []));
   }
   const swap = (a, i, d) => { const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; save(); draw(); };
   const ib = (t, label, f) => el('button', { class: 'btn', type: 'button', 'aria-label': label, onclick: f }, t);
@@ -185,7 +198,7 @@ PAGES.course = id => {
         } else {
           const cb = el('input', { type: 'checkbox', 'aria-label': 'Mark complete: ' + l.t }); cb.checked = on;
           cb.onchange = () => { if (cb.checked) p.done[k] = 1; else delete p.done[k]; save(); draw(); };
-          box.append(el('div', { class: 'lesson' + (on ? ' done' : '') }, cb, el('a', { href: learnHref(c, l) }, l.t),
+          box.append(el('div', { class: 'lesson' + (on ? ' done' : '') }, cb, el('a', { class: 'play', href: learnHref(c, l), 'aria-label': 'Play lesson: ' + l.t, title: 'Play this lesson' }, ico('play')), el('a', { href: learnHref(c, l) }, l.t),
             S.notes[`c:${id}:${k}`] ? el('span', { class: 'mut', title: 'Has notes' }, '✎') : null, el('span', { class: 'mut' }, l.d ? fmtDur(l.d) : '')));
         }
       });
@@ -255,7 +268,7 @@ PAGES.learn = arg => {
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }));
-  const lay = layoutBox(vcol, notes), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  const lay = layoutBox(vcol, notes, l.t), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
 };

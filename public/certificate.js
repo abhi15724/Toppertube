@@ -69,7 +69,7 @@ PAGES.certificate = id => {
       S.name = n; S.certs[id] = { n, c: t, k: lessonsOf(course).length, d: todayISO(), i: newCertId() }; save(); route();
     };
     main.append(el('div', { class: 'top' }, el('h2', null, 'Congratulations, you completed the course!')),
-      el('section', { class: 'panel' }, el('p', null, 'Enter your name and confirm the course name. They will be printed on your certificate.'),
+      el('section', { class: 'panel' }, el('p', null, 'Enter your name and confirm the course name. They will be printed on your certificate. You can open it again any time from Courses → My certificates.'),
         el('label', { class: 'mut' }, 'Your name', nameI), el('p'), el('label', { class: 'mut' }, 'Course name', courseI), el('p'),
         el('div', { class: 'row' }, el('button', { class: 'btn pri', type: 'button', onclick: make }, 'Create my certificate')), st));
     return;
