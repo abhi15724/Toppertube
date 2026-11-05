@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Toppertube: free learning videos from trusted educational channels, with courses, notes, certificates and podcasts.">
+<meta name="theme-color" content="#d62839">
+<meta property="og:title" content="Toppertube – YouTube for learning">
+<meta property="og:description" content="Courses, notes and certificates built on the best educational videos.">
+<meta property="og:type" content="website">
 <title>Toppertube – YouTube for learning</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
@@ -99,6 +104,9 @@ body .watch .fsbox.fsmode .nt{flex:1;resize:none}
 /* course page: play buttons and notes */
 .play{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff}
 .lesson>a.play{flex:none}.play:hover{filter:brightness(1.12)}.play svg.i{width:16px;height:16px;margin-left:2px}
+.play.sm{width:28px;height:28px}.play.sm svg.i{width:13px;height:13px}
+.snip{font-size:13px;line-height:1.35;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+mark{background:#ffe58a;color:#1b1f3b;border-radius:3px;padding:0 1px}
 .howto{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 14px}.howto summary{cursor:pointer;font-weight:600}
 .howto ol,.panel ol{margin:8px 0 2px;padding-left:20px}.howto li,.panel li{margin:4px 0}
 .notes .hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
@@ -118,7 +126,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 <header>
   <button class="ib" id="menuBtn" type="button" aria-label="Menu"></button>
   <a class="logo" href="#/home">Topper<b>Tube</b></a>
-  <form class="sf" id="sf" role="search"><input id="q" type="search" placeholder="Search" aria-label="Search lessons"><button type="submit" aria-label="Search" id="sb"></button></form>
+  <form class="sf" id="sf" role="search"><input id="q" type="search" placeholder="Search any topic or question" aria-label="Search lessons" list="sugg" autocomplete="off" enterkeyhint="search"><datalist id="sugg"></datalist><button type="submit" aria-label="Search" id="sb"></button></form>
   <button class="ib" id="themeBtn" type="button" aria-label="Toggle dark mode"></button>
 </header>
 <div class="shell"><nav id="nav" aria-label="Main"></nav><main id="main" tabindex="-1"></main></div>

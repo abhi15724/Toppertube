@@ -97,8 +97,9 @@ function related(v, n = 12) {
 }
 
 /* ---------- search: forgiving, ranked by relevance ---------- */
-const GENERIC = new Set('course courses tutorial tutorials full lecture lectures class classes learn video videos free complete the and for with how what why from into best new part series playlist'.split(' '));
-const SYN = { ai: ['artificial intelligence', 'machine learning', 'deep learning', 'llm', 'gpt'], ml: ['machine learning'], dsa: ['data structures', 'algorithms'],
+const GENERIC = new Set('course courses tutorial tutorials full lecture lectures class classes learn video videos free complete the and for with how what why from into best new part series playlist channel channels lessons lesson guide explained explain topic topics top'.split(' '));
+const SYN = { ds: ['data science'], genai: ['generative ai'], nlp: ['natural language processing'], cs: ['computer science'], py: ['python'], ux: ['user experience'], ui: ['user interface'],
+  chem: ['chemistry'], bio: ['biology'], eco: ['economics'], acc: ['accounting', 'accountancy'], ai: ['artificial intelligence', 'machine learning', 'deep learning', 'llm', 'gpt'], ml: ['machine learning'], dsa: ['data structures', 'algorithms'],
   js: ['javascript'], os: ['operating system'], dbms: ['database'], cpp: ['c++'], maths: ['math', 'mathematics'], math: ['maths', 'mathematics'] };
 const WORDC = new Map();
 const wordsOf = t => {
@@ -107,7 +108,14 @@ const wordsOf = t => {
   return r;
 };
 const stem = w => w.length > 5 ? w.replace(/(ing|es|ed|s)$/, '') : w;
-const wmatch = (h, q) => h === q || (q.length >= 4 && h.length >= 4 && (stem(h).startsWith(stem(q)) || stem(q).startsWith(stem(h))));
+const near = (a, b) => {   // true when two words differ by one letter at most (typing mistakes)
+  const la = a.length, lb = b.length;
+  if (a === b) return true;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0; while (i < la && i < lb && a[i] === b[i]) i++;
+  return la === lb ? a.slice(i + 1) === b.slice(i + 1) : la > lb ? a.slice(i + 1) === b.slice(i) : b.slice(i + 1) === a.slice(i);
+};
+const wmatch = (h, q) => h === q || (q.length >= 4 && h.length >= 4 && (stem(h).startsWith(stem(q)) || stem(q).startsWith(stem(h)))) || (q.length >= 6 && h.length >= 5 && near(h, q));
 // Returns a function: video -> relevance score (0 = no match). Generic words like "course" never block a match,
 // at least half of the real words must match, and AI/ML-style shorthand is expanded.
 function makeMatcher(query) {
@@ -137,6 +145,7 @@ const main = $('#main'), dlg = $('#dlg');
 const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
 let FLUSH = null, YTP = null, TICK = null, EXITFS = null;
 const PAGES = {};
+const setTitle = t => { document.title = t ? t + ' – Toppertube' : 'Toppertube – YouTube for learning'; };
 const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
@@ -147,6 +156,7 @@ function route() {
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
   const page = PAGES[parts[0]] ? parts[0] : 'home', arg = decodeURIComponent(parts.slice(1).join('/'));
+  setTitle(page === 'search' ? 'Search: ' + arg : ['cat', 'channel'].includes(page) ? arg : '');
   const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', certificate: 'courses' }[page] || page;
   document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === '#/' + navKey ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   main.replaceChildren(); document.body.classList.remove('navopen');
@@ -174,7 +184,7 @@ function card(v, o = {}) {
     return w;
   }
   w.append(el('a', { href }, thumb, el('div', { class: 'ct' }, v.title)),
-    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), ...(o.note ? [el('div', { class: 'cm', style: 'font-style:italic;margin-top:2px' }, o.note)] : []));
+    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), ...(o.note ? [el('div', { class: 'cm snip' }, o.note)] : []));
   const b = el('button', { class: 'cb', type: 'button', onclick: () => {
     if (o.remove) o.remove(); else b.textContent = toggle('later', v, 2) ? '✓ Saved' : 'Watch later';
   } }, o.remove ? 'Remove' : (S.later.includes(v.id) ? '✓ Saved' : 'Watch later'));
@@ -344,26 +354,49 @@ PAGES.channel = arg => {
   }
   main.append(el('div', { class: 'row', style: 'margin-top:20px' }, lb, sb, st)); upd();
 };
+// A short piece of a video's description around the words that were searched for, with those words highlighted.
+function snippet(text, words, max = 120) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+  const low = t.toLowerCase(); let at = -1;
+  for (const w of words) { const i = low.indexOf(w); if (i >= 0 && (at < 0 || i < at)) at = i; }
+  const start = at > 30 ? at - 30 : 0, part = t.slice(start, start + max), out = [];
+  if (start > 0) out.push('…');
+  const re = words.length ? new RegExp('(' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'ig') : null;
+  (re ? part.split(re) : [part]).forEach((seg, i) => { if (seg) out.push(re && i % 2 ? el('mark', null, seg) : seg); });
+  if (start + max < t.length) out.push('…');
+  return out;
+}
+const YTC = new Map();   // YouTube results already fetched during this visit, by query
+const ytQuery = q => { const w = q.toLowerCase().split(/\s+/).filter(Boolean), k = w.filter(x => !['channel', 'channels', 'video', 'videos'].includes(x)); return (k.length ? k : w).join(' ').slice(0, 80); };
 PAGES.search = arg => {
   toks(arg).forEach(k => S.prof.kw[k] = (S.prof.kw[k] || 0) + 1); save();
   const m = makeMatcher(arg);
   const get = () => CAT.map(v => [v, m(v)]).filter(x => x[1] > 0).sort((a, b) => (b[1] + score(b[0]) * 0.1) - (a[1] + score(a[0]) * 0.1)).map(x => x[0]);
-  listPage(`Results for “${arg}”`, get, { empty: 'No lessons in our channels match yet. Try “Search more on YouTube” below.' });
+  // channels whose name matches the words typed ("khan" shows Khan Academy)
+  const chans = CHANS.map(c => [c, m({ title: c.name, channel: '', category: '' })]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 8).map(x => x[0]);
+  if (chans.length) main.append(el('div', { class: 'chips', role: 'group', 'aria-label': 'Matching channels' }, el('span', { class: 'mut', style: 'align-self:center' }, 'Channels:'), ...chans.map(c => el('a', { class: 'chip', href: chanHref(c.name) }, c.name))));
+  const total = get().length;
+  const qw = wordsOf(arg).filter(w => !GENERIC.has(w)), note = v => snippet(v.d, qw.length ? qw : wordsOf(arg));   // why a result matched
+  listPage(`Results for “${arg}”`, get, { note, empty: 'No lessons in our channels match this search.' });
   const box = el('div'), st = el('span', { class: 'mut', role: 'status' });
   const btn = el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Search more on YouTube');
   main.append(el('div', { class: 'row', style: 'margin-top:24px' }, btn, st), box);
   async function go() {
-    btn.disabled = true; st.textContent = 'Searching YouTube…';
+    btn.disabled = true; st.className = 'mut'; st.textContent = 'Finding more videos on YouTube…';
+    const q = ytQuery(arg);
     try {
-      const r = await fetch('/api/search?q=' + encodeURIComponent(arg)), d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Request failed');
-      const items = d.items.filter(v => !S.bad.includes(v.id));
-      items.forEach(v => { v.ext = true; if (!V.has(v.id)) V.set(v.id, v); });
-      box.replaceChildren(el('h3', null, 'More from YouTube'), el('p', { class: 'mut' }, 'These videos are from channels outside our trusted list.'),
-        items.length ? el('div', { class: 'grid' }, items.map(v => card(v))) : msg('Nothing more found.'));
+      let d = YTC.get(q);
+      if (!d) { const r = await fetch('/api/search?q=' + encodeURIComponent(q)); d = await r.json(); if (!r.ok) throw new Error(d.error || 'Request failed'); YTC.set(q, d); }
+      const have = new Set(get().map(v => v.id));
+      const items = d.items.map(v => V.get(v.id) || v).filter(v => !S.bad.includes(v.id) && !have.has(v.id));
+      items.forEach(v => { if (!V.has(v.id)) { v.ext = true; V.set(v.id, v); } });
+      box.replaceChildren(el('h3', null, 'More from YouTube'), el('p', { class: 'mut' }, `Videos about “${q}” from across YouTube, including channels outside our trusted list.`),
+        items.length ? el('div', { class: 'grid' }, items.map(v => card(v, { note: note(v) }))) : msg('Nothing more found.'));
       st.textContent = ''; btn.hidden = true;
-    } catch (e) { st.textContent = e.message; btn.disabled = false; }
+    } catch (e) { st.className = 'err'; st.textContent = e.message; btn.disabled = false; }
   }
+  if (total < 8) go();   // too few answers in our own channels: look on YouTube straight away
 };
 
 /* playlists */
@@ -522,7 +555,7 @@ function loadYT() {
 PAGES.watch = (id, q) => {
   const v = getV(id);
   if (!v) { main.append(msg('This lesson is no longer in the feed.'), el('a', { class: 'btn', href: '#/home' }, 'Back to home')); return; }
-  remember(v); S.hist = [v.id, ...S.hist.filter(x => x !== v.id)].slice(0, 200); bump(v, 1); save();
+  remember(v); S.hist = [v.id, ...S.hist.filter(x => x !== v.id)].slice(0, 200); bump(v, 1); save(); setTitle(v.title);
   const list = q.get('list'), ids = list ? listIds(list) : null, idx = ids ? ids.indexOf(v.id) : -1;
   const next = () => { if (ids && idx >= 0 && idx < ids.length - 1) location.hash = `#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}`; };
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' });
@@ -589,6 +622,20 @@ function applyTheme() {
 $('#menuBtn').append(ico('menu')); $('#sb').append(ico('search')); $('#themeBtn').append(ico('moon'));
 $('#menuBtn').onclick = () => document.body.classList.toggle(innerWidth > 900 ? 'nonav' : 'navopen');
 $('#themeBtn').onclick = () => { S.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); };
+// suggestions while typing: channels, subjects and lesson titles that contain the typed text
+let sugT;
+$('#q').addEventListener('input', () => {
+  clearTimeout(sugT);
+  sugT = setTimeout(() => {
+    const t = $('#q').value.trim().toLowerCase(), dl = $('#sugg');
+    if (t.length < 2 || !CAT.length) { dl.replaceChildren(); return; }
+    const out = [], seen = new Set(), add = s => { const k = s.toLowerCase(); if (out.length < 8 && !seen.has(k)) { seen.add(k); out.push(s); } };
+    CHANS.forEach(c => { if (c.name.toLowerCase().includes(t)) add(c.name); });
+    CATS.forEach(c => { if (c.toLowerCase().includes(t)) add(c); });
+    CAT.filter(v => v.title.toLowerCase().includes(t)).sort((a, b) => b.views - a.views).slice(0, 8).forEach(v => add(v.title));
+    dl.replaceChildren(...out.map(s => el('option', { value: s })));
+  }, 120);
+});
 $('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } location.hash = '#/search/' + encodeURIComponent(q); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
 addEventListener('hashchange', route);

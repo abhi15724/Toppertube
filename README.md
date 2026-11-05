@@ -60,8 +60,19 @@ fills the screen with the video and the notes side by side (YouTube's own full-s
 Notes autosave, support timestamps that jump the video, and download as .txt, .md or PDF.
 
 ## Search
-Ranked by relevance: generic words like "course" never block a match, partial forms match, AI/ML/DSA/JS are expanded. "Search more
-on YouTube" adds results from any channel (100 units per new search, cached 24 hours, 40 per hour per server).
+Type any topic or question. Results are ranked by relevance:
+- generic words such as "course", "channel" or "tutorial" never block a match; at least half of the real words must match;
+- partial forms (engineer / engineering), small typing mistakes in longer words, and shorthand (AI, ML, DS, DSA, JS, NLP, UI, UX ...) are understood;
+- each video carries a short searchable text (the start of its description and its tags), so topics are found even when the title does not say them;
+- channels whose name matches are shown as chips above the results ("khan" shows Khan Academy);
+- while typing, the search box suggests channels, subjects and lesson titles.
+- every result shows a short piece of the video's description around the words you searched for, highlighted, so you can see why it matched;
+When our own channels have fewer than 8 matches, YouTube is searched automatically ("More from YouTube", in YouTube's own relevance
+order, channels outside our list included). Each new YouTube search costs 100 of the 10,000 daily quota units; answers are cached for
+24 hours and repeated within a visit, the query is cleaned ("ai engineer channel" -> "ai engineer") so more searches share one cached answer,
+and each server allows 40 per hour. If many students search different things, the quota can run out for the day: the lesson snapshot
+keeps working, and you can request more quota from Google. Page titles change with the page. Because the site uses # links, Google can
+index only the home page (description and social tags are set), not individual searches or videos.
 Inside a channel page, search covers titles and descriptions of the loaded lessons, and "Search the whole library" loads the rest.
 
 ## Favicon

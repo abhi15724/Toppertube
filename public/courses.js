@@ -147,6 +147,7 @@ PAGES.courses = (arg, q) => {
 PAGES.course = id => {
   const c = S.courses.find(x => x.id === id);
   if (!c) { main.append(msg('Course not found.'), el('a', { class: 'btn', href: '#/courses' }, 'All courses')); return; }
+  setTitle(c.title);
   let edit = false; const head = el('div'), box = el('div');
   const doneNow = lessonsOf(c).filter(x => prog(id).done[lk(x)]).length;
   const howto = el('details', { class: 'howto', open: doneNow === 0 ? '' : null }, el('summary', null, 'How to use this course'), el('ol', null,
@@ -223,14 +224,16 @@ PAGES.learn = arg => {
   if (!ls.length) { main.append(msg('This course has no lessons yet.'), el('a', { class: 'btn', href: '#/course/' + cid }, 'Edit course')); return; }
   const i = Math.max(0, ls.findIndex(x => lk(x) === key)), l = ls[i], k = lk(l), p = prog(cid), m = c.modules.find(x => x.lessons.includes(l));
   const v = getV(l.v) || { id: l.v, title: l.t, channel: '', category: 'Course', seconds: l.d || 0, views: 0, publishedAt: new Date().toISOString(), ext: true };
-  remember(v); p.last = k; S.hist = [l.v, ...S.hist.filter(x => x !== l.v)].slice(0, 200); bump(v, 1); save();
+  remember(v); p.last = k; S.hist = [l.v, ...S.hist.filter(x => x !== l.v)].slice(0, 200); bump(v, 1); save(); setTitle(l.t + ' · ' + c.title);
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' }), side = el('aside');
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
   const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else if (pctOf(c) === 100) location.hash = '#/certificate/' + cid; };
   const outline = () => side.replaceChildren(el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
     ...c.modules.map(mm => el('div', null, el('b', { style: 'display:block;margin:10px 0 4px' }, mm.title),
-      ...mm.lessons.map(x => el('a', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), href: learnHref(c, x), 'aria-current': x === l ? 'true' : null },
-        el('span', null, p.done[lk(x)] ? '✓' : '○'), el('span', null, x.t))))));
+      ...mm.lessons.map(x => el('div', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), 'aria-current': x === l ? 'true' : null },
+        el('span', null, p.done[lk(x)] ? '✓' : '○'),
+        el('a', { class: 'play sm', href: learnHref(c, x), 'aria-label': 'Play lesson: ' + x.t, title: 'Play this lesson' }, ico('play')),
+        el('a', { href: learnHref(c, x) }, x.t))))));
   const sync = () => {
     const on = !!p.done[k], lk2 = S.liked.includes(v.id), w = S.later.includes(v.id);
     doneB.replaceChildren(on ? '✓ Completed' : 'Mark complete'); doneB.classList.toggle('on', on);
