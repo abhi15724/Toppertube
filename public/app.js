@@ -26,6 +26,10 @@ const IC = {
   moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  left: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  right: '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+  ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
   play: '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
@@ -152,6 +156,7 @@ const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', '
 function route() {
   if (EXITFS) EXITFS();
   UPDLINE = null;
+  document.body.classList.remove('onwatch');
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
@@ -515,10 +520,22 @@ PAGES.notes = () => {
 };
 
 /* ---------- notes beside the video, and full screen that keeps the notes next to it ---------- */
-function layoutBox(vcol, notes, title = '') {   // box = (full-screen top bar) + video column + notes panel
+// Icon buttons for a phone held sideways (CSS shows this rail only then). items: { ico, label, fn | href, on? }
+function railBox(items) {
+  const btns = items.map(it => ({ it, node: it.href
+    ? el('a', { class: 'rb', href: it.href, 'aria-label': it.label, title: it.label, target: it.ext ? '_blank' : null, rel: it.ext ? 'noopener' : null }, ico(it.ico))
+    : el('button', { class: 'rb', type: 'button', 'aria-label': it.label, title: it.label, onclick: it.fn }, ico(it.ico)) }));
+  return { rail: el('div', { class: 'rail', role: 'toolbar', 'aria-label': 'Video controls' }, btns.map(b => b.node)),
+           refresh: () => btns.forEach(b => { if (b.it.on) b.node.classList.toggle('on', !!b.it.on()); }) };
+}
+function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-screen top bar) + video column + notes panel + sideways-phone button rail
   const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
   const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
-  const box = el('div', { class: 'fsbox' }, bar, vcol, notes);
+  const rb = railBox([{ ico: 'left', label: 'Back', fn: () => { if (history.length > 1) history.back(); else location.hash = '#/home'; } }, ...railItems,
+    { ico: 'pen', label: 'Notes', fn: () => { box.classList.toggle('notes-open'); rb.refresh(); }, on: () => box.classList.contains('notes-open') }]);
+  const box = el('div', { class: 'fsbox' }, bar, vcol, notes, rb.rail);
+  document.body.classList.add('onwatch');   // route() clears this again on every page change
+  rb.refresh();
   let on = false;
   const onKey = e => { if (e.key === 'Escape') exit(); };
   function exit() {
@@ -532,7 +549,7 @@ function layoutBox(vcol, notes, title = '') {   // box = (full-screen top bar) +
   }
   exitB.onclick = exit;
   box.addEventListener('fullscreenchange', () => { if (on && !document.fullscreenElement) exit(); });
-  return { box, enter };
+  return { box, enter, refresh: rb.refresh };
 }
 function layoutButtons(wrap, enter) {
   const sb = el('button', { class: 'btn', type: 'button' });
@@ -590,7 +607,13 @@ PAGES.watch = (id, q) => {
     el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }));
-  const lay = layoutBox(vcol, notes, v.title), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  const rail = [
+    { ico: 'thumb', label: 'Like', fn: () => { likeB.onclick(); lay.refresh(); }, on: () => S.liked.includes(v.id) },
+    { ico: 'clock', label: 'Watch later', fn: () => { laterB.onclick(); lay.refresh(); }, on: () => S.later.includes(v.id) },
+    { ico: 'list', label: 'Add to playlist', fn: () => playlistDlg(v) },
+    { ico: 'book', label: 'Make a course', fn: () => makeCourseHere(v) },
+    { ico: 'ext', label: 'Open on YouTube', href: 'https://www.youtube.com/watch?v=' + v.id, ext: true }];
+  const lay = layoutBox(vcol, notes, v.title, rail), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
 };
@@ -639,6 +662,9 @@ $('#q').addEventListener('input', () => {
 $('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } location.hash = '#/search/' + encodeURIComponent(q); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
 addEventListener('hashchange', route);
+// turning a phone sideways: leave the "full screen + notes" mode, the sideways layout (video + button rail) takes over
+const phoneSideways = matchMedia('(orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
+if (phoneSideways.addEventListener) phoneSideways.addEventListener('change', e => { if (e.matches && EXITFS) EXITFS(); });
 
 let FEEDAT = '';
 function applyFeed(d) {

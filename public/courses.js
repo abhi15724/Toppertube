@@ -271,7 +271,15 @@ PAGES.learn = arg => {
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }));
-  const lay = layoutBox(vcol, notes, l.t), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  const rail = [
+    { ico: 'check', label: 'Mark complete', fn: () => { doneB.onclick(); lay.refresh(); }, on: () => !!p.done[k] },
+    ...(i > 0 ? [{ ico: 'left', label: 'Previous lesson', href: learnHref(c, ls[i - 1]) }] : []),
+    ...(i + 1 < ls.length ? [{ ico: 'right', label: 'Next lesson', href: learnHref(c, ls[i + 1]) }] : []),
+    { ico: 'thumb', label: 'Like', fn: () => { likeB.onclick(); lay.refresh(); }, on: () => S.liked.includes(v.id) },
+    { ico: 'clock', label: 'Watch later', fn: () => { laterB.onclick(); lay.refresh(); }, on: () => S.later.includes(v.id) },
+    { ico: 'list', label: 'Add to playlist', fn: () => playlistDlg(v) },
+    { ico: 'ext', label: 'Open on YouTube', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, ext: true }];
+  const lay = layoutBox(vcol, notes, l.t, rail), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
 };

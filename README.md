@@ -59,6 +59,13 @@ On every video and lesson page the notes sit beside the player (toggle "Notes be
 fills the screen with the video and the notes side by side (YouTube's own full-screen button is hidden, because it would hide the notes).
 Notes autosave, support timestamps that jump the video, and download as .txt, .md or PDF.
 
+## Phone held sideways
+On a phone in landscape, a video or lesson page becomes video only: the video fills the screen, with a slim column of icon buttons on the
+right (Back, Like, Watch later, Add to playlist, Make a course, Open on YouTube; on lessons also Mark complete, Previous and Next) and a
+pen button that slides the notes over the video. Turning the phone upright restores the normal page. It is pure CSS (a touch screen
+less than 520 px high), so no extra settings are needed. The browser's own address bar can stay visible on some phones; "Add to Home
+screen" opens the site without it (manifest.webmanifest and the favicon sizes are included).
+
 ## Search
 Type any topic or question. Results are ranked by relevance:
 - generic words such as "course", "channel" or "tutorial" never block a match; at least half of the real words must match;
