@@ -30,6 +30,8 @@ const IC = {
   left: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
   right: '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
   ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+  chart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   play: '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
@@ -150,19 +152,20 @@ const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
 let FLUSH = null, YTP = null, TICK = null, EXITFS = null;
 const PAGES = {};
 const setTitle = t => { document.title = t ? t + ' – Toppertube' : 'Toppertube – YouTube for learning'; };
-const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
+const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['progress', 'Progress', 'chart'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
 function route() {
   if (EXITFS) EXITFS();
   UPDLINE = null;
   document.body.classList.remove('onwatch');
+  document.body.dataset.panel = ''; RAILREFRESH = null;
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
   const page = PAGES[parts[0]] ? parts[0] : 'home', arg = decodeURIComponent(parts.slice(1).join('/'));
   setTitle(page === 'search' ? 'Search: ' + arg : ['cat', 'channel'].includes(page) ? arg : '');
-  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', certificate: 'courses' }[page] || page;
+  const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', certificate: 'courses', verify: 'courses' }[page] || page;
   document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === '#/' + navKey ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   main.replaceChildren(); document.body.classList.remove('navopen');
   if (!CAT.length && ['home', 'longs', 'cats', 'cat', 'channels', 'channel', 'search', 'watch'].includes(page)) {
@@ -180,8 +183,10 @@ function toggle(arr, v, w) {
 }
 const chanHref = c => '#/channel/' + encodeURIComponent(c);
 function card(v, o = {}) {
-  const href = '#/watch/' + v.id + (o.list ? '?list=' + encodeURIComponent(o.list) : '');
-  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', loading: 'lazy', decoding: 'async' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null);
+  const href = o.href || ('#/watch/' + v.id + (o.list ? '?list=' + encodeURIComponent(o.list) : ''));
+  const pr = POS[v.id], frac = o.frac != null ? o.frac : (pr && pr.d ? pr.t / pr.d : 0);   // how much of it was watched
+  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', loading: 'lazy', decoding: 'async' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null,
+    frac > 0.02 && frac < 0.97 ? el('div', { class: 'pbar' }, el('i', { style: `width:${Math.round(frac * 100)}%` })) : null);
   const stats = `${fmtViews(v.views)} views • ${ago(v)}`;
   const w = el('div', { class: 'cw' + (o.small ? ' sm' : '') + (o.cur ? ' cur' : '') });
   if (o.small) {
@@ -189,7 +194,7 @@ function card(v, o = {}) {
     return w;
   }
   w.append(el('a', { href }, thumb, el('div', { class: 'ct' }, v.title)),
-    el('div', { class: 'cm' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), ...(o.note ? [el('div', { class: 'cm snip' }, o.note)] : []));
+    el('div', { class: 'cm' }, o.chan !== undefined ? o.chan : v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel) }, v.channel)), el('div', { class: 'cm' }, stats), ...(o.note ? [el('div', { class: 'cm snip' }, o.note)] : []));
   const b = el('button', { class: 'cb', type: 'button', onclick: () => {
     if (o.remove) o.remove(); else b.textContent = toggle('later', v, 2) ? '✓ Saved' : 'Watch later';
   } }, o.remove ? 'Remove' : (S.later.includes(v.id) ? '✓ Saved' : 'Watch later'));
@@ -257,13 +262,18 @@ function updText() {
 }
 PAGES.home = () => {
   UPDLINE = el('p', { class: 'mut', style: 'font-size:13px;margin:2px 0 10px' }); updText(); main.append(UPDLINE);
+  main.append(studyWidget());
+  const cont = continueItems();
+  if (cont.length) main.append(el('h3', { style: 'margin:6px 0 10px' }, 'Continue watching'), el('div', { class: 'grid', style: 'margin-bottom:8px' }, cont.map(it =>
+    card(it.v, { href: it.href, chan: it.chan, frac: it.frac, note: 'Resume at ' + fmtDur(it.t), remove: () => { delete POS[it.key]; LS.set('tt_pos', POS); route(); } }))));
   listPage('', () => CAT.filter(v => v.category !== 'Podcasts' || F.cat === 'Podcasts' || (S.prof.cat.Podcasts || 0) > 1), { ranked: true, chips: true });
 };
 // Raj Shamani, Joe Rogan and Nikhil Kamath. If one of them did not load with the channel feed, their latest long episodes
 // are searched on YouTube instead, so this page is never empty (costs 100 quota units per search, cached 24 hours).
 const PODS = [{ name: 'Raj Shamani', test: /raj ?shamani/i, q: 'raj shamani figuring out podcast' },
   { name: 'Joe Rogan', test: /powerfuljre|joe rogan/i, q: 'joe rogan experience full episode' },
-  { name: 'Nikhil Kamath', test: /nikhil ?kamath/i, q: 'nikhil kamath wtf podcast full episode' }];
+  { name: 'Nikhil Kamath', test: /nikhil ?kamath/i, q: 'nikhil kamath wtf podcast full episode' },
+  { name: 'Prakhar Gupta', test: /prakhar ?gupta/i, q: 'prakhar gupta xperience podcast' }];
 PAGES.podcasts = () => {
   listPage('Podcasts', () => CAT.filter(v => v.category === 'Podcasts'), { ranked: true, empty: 'No podcast episodes are loaded yet.' });
   const missing = PODS.filter(p => !CAT.some(v => v.category === 'Podcasts' && p.test.test(v.channel)));
@@ -521,6 +531,9 @@ PAGES.notes = () => {
 
 /* ---------- notes beside the video, and full screen that keeps the notes next to it ---------- */
 // Icon buttons for a phone held sideways (CSS shows this rail only then). items: { ico, label, fn | href, on? }
+// One slide-over panel at a time in the sideways layout: the notes or the lesson list ("up next" on a plain video).
+let RAILREFRESH = null;
+function togglePanel(name) { document.body.dataset.panel = document.body.dataset.panel === name ? '' : name; if (RAILREFRESH) RAILREFRESH(); }
 function railBox(items) {
   const btns = items.map(it => ({ it, node: it.href
     ? el('a', { class: 'rb', href: it.href, 'aria-label': it.label, title: it.label, target: it.ext ? '_blank' : null, rel: it.ext ? 'noopener' : null }, ico(it.ico))
@@ -532,9 +545,10 @@ function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-s
   const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
   const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
   const rb = railBox([{ ico: 'left', label: 'Back', fn: () => { if (history.length > 1) history.back(); else location.hash = '#/home'; } }, ...railItems,
-    { ico: 'pen', label: 'Notes', fn: () => { box.classList.toggle('notes-open'); rb.refresh(); }, on: () => box.classList.contains('notes-open') }]);
+    { ico: 'pen', label: 'Notes', fn: () => togglePanel('notes'), on: () => document.body.dataset.panel === 'notes' }]);
   const box = el('div', { class: 'fsbox' }, bar, vcol, notes, rb.rail);
   document.body.classList.add('onwatch');   // route() clears this again on every page change
+  RAILREFRESH = rb.refresh;
   rb.refresh();
   let on = false;
   const onKey = e => { if (e.key === 'Escape') exit(); };
@@ -559,8 +573,85 @@ function layoutButtons(wrap, enter) {
   return [sb, el('button', { class: 'btn', type: 'button', onclick: enter }, 'Full screen + notes')];
 }
 
+/* ---------- continue watching, study time and streaks (saved on this device) ---------- */
+const POS = LS.get('tt_pos', {});                              // where each video / lesson was left: { key: { t, d, at, v } }
+const STUDY = LS.get('tt_study', { days: {}, goal: 20 });       // seconds studied per day, and the daily goal in minutes
+if (!STUDY.days) STUDY.days = {}; if (!STUDY.goal) STUDY.goal = 20;
+let POSHOOK = null;
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); return dayKey(new Date(y, m - 1, d + n)); };
+function savePos(key, vid, t, d) {
+  if (!(d > 0) || !(t >= 0)) return;
+  POS[key] = { t: Math.floor(t), d: Math.floor(d), at: Date.now(), v: vid };
+  const keys = Object.keys(POS);
+  if (keys.length > 60) keys.sort((a, b) => POS[a].at - POS[b].at).slice(0, keys.length - 60).forEach(k => delete POS[k]);
+  LS.set('tt_pos', POS);
+}
+function recordPlay(key, vid, seconds = 5) {   // runs every 5 seconds while a player is open (and once when leaving, with seconds = 0)
+  try {
+    if (seconds && YTP.getPlayerState() === 1) { const k = dayKey(); STUDY.days[k] = (STUDY.days[k] || 0) + seconds; LS.set('tt_study', STUDY); }
+    savePos(key, vid, YTP.getCurrentTime(), YTP.getDuration());
+  } catch (e) {}
+}
+// where to start: the saved spot if it is inside the lesson and not right at the beginning or the end
+const resumeAt = (key, from = 0, to = Infinity) => { const p = POS[key]; return p && p.t > Math.max(15, from + 10) && p.t < Math.min(p.d - 20, to - 10) ? p.t : 0; };
+function studyInfo() {
+  const goal = STUDY.goal * 60, days = STUDY.days, today = dayKey(), done = k => (days[k] || 0) >= goal;
+  let cur = 0, k = done(today) ? today : addDays(today, -1);       // today not finished yet does not break the streak
+  while (done(k)) { cur++; k = addDays(k, -1); }
+  let best = 0, run = 0;
+  Object.keys(days).filter(done).sort().forEach((d, i, a) => { run = i && addDays(a[i - 1], 1) === d ? run + 1 : 1; best = Math.max(best, run); });
+  return { goal, today: days[today] || 0, cur, best: Math.max(best, cur), total: Object.values(days).reduce((a, b) => a + b, 0), active: Object.keys(days).length };
+}
+function continueItems() {
+  const out = [];
+  Object.entries(POS).sort((a, b) => b[1].at - a[1].at).forEach(([key, p]) => {
+    if (out.length >= 4) return;
+    if (key.startsWith('c:')) {                                     // a course lesson
+      const [, cid, ...rest] = key.split(':'), lkey = rest.join(':'), c = S.courses.find(x => x.id === cid), l = c && lessonsOf(c).find(x => lk(x) === lkey);
+      if (!l || prog(cid).done[lkey] || !resumeAt(key, l.s || 0, l.e || Infinity)) return;
+      const v = getV(l.v) || { id: l.v, title: l.t, channel: '', seconds: l.d || 0, views: 0, publishedAt: new Date().toISOString() };
+      out.push({ key, v: { ...v, title: l.t }, href: learnHref(c, l), chan: c.title, t: p.t, frac: (p.t - (l.s || 0)) / ((l.e || p.d) - (l.s || 0)) });
+    } else {
+      const v = getV(key);
+      if (v && resumeAt(key)) out.push({ key, v, href: '#/watch/' + key, t: p.t, frac: p.t / p.d });
+    }
+  });
+  return out;
+}
+function studyWidget() {
+  const s = studyInfo(), pct = Math.min(100, Math.round(100 * s.today / s.goal));
+  return el('a', { class: 'panel stw', href: '#/progress', 'aria-label': 'Open your progress' },
+    el('span', { class: 'stk' }, ico('zap'), s.cur ? `${s.cur}-day streak` : 'Start your streak'),
+    el('div', null, el('div', { class: 'cm' }, `Today: ${Math.floor(s.today / 60)} of ${STUDY.goal} minutes${s.today >= s.goal ? ' · goal reached!' : ''}`), bar(pct)),
+    el('span', { class: 'mut' }, 'Progress →'));
+}
+PAGES.progress = () => {
+  const s = studyInfo(), pct = Math.min(100, Math.round(100 * s.today / s.goal)), mins = n => Math.round(n / 60);
+  const goalSel = el('select', { 'aria-label': 'Daily goal in minutes', onchange: e => { STUDY.goal = +e.target.value; LS.set('tt_study', STUDY); route(); } },
+    [10, 20, 30, 45, 60, 90].map(m => el('option', { value: m, selected: STUDY.goal === m ? '' : null }, m + ' minutes')));
+  main.append(el('div', { class: 'top' }, el('h2', null, 'Your progress'), el('label', { class: 'mut' }, 'Daily goal ', goalSel)));
+  const long = n => n < 3600 ? mins(n) + ' min' : (n / 3600).toFixed(1).replace('.0', '') + ' h', dd = n => `${n} ${n === 1 ? 'day' : 'days'}`;
+  main.append(el('div', { class: 'tiles' },
+    el('div', { class: 'tile' }, el('b', null, `${mins(s.today)} / ${STUDY.goal} min`), el('span', { class: 'mut' }, s.today >= s.goal ? 'Today’s goal reached' : 'Studied today'), bar(pct)),
+    el('div', { class: 'tile' }, el('b', null, dd(s.cur)), el('span', { class: 'mut' }, 'Current streak')),
+    el('div', { class: 'tile' }, el('b', null, dd(s.best)), el('span', { class: 'mut' }, 'Best streak')),
+    el('div', { class: 'tile' }, el('b', null, long(s.total)), el('span', { class: 'mut' }, `Total study time · ${dd(s.active)} studied`))));
+  const days7 = Array.from({ length: 7 }, (_, i) => addDays(dayKey(), i - 6)), top = Math.max(s.goal, ...days7.map(k => STUDY.days[k] || 0));
+  const lab = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short' }); };
+  main.append(el('h3', null, 'Last 7 days'), el('div', { class: 'chart', role: 'img', 'aria-label': 'Minutes studied in the last 7 days' }, days7.map(k => {
+    const sec = STUDY.days[k] || 0;
+    return el('div', { class: 'cbar' }, el('div', { class: 'plot' }, el('i', { class: sec >= s.goal ? 'hit' : '', style: `height:${Math.max(2, Math.round(100 * sec / top))}%` })), el('span', null, lab(k)), el('small', null, mins(sec) + ' m'));
+  })));
+  const doneL = Object.values(S.prog).reduce((n, p) => n + Object.keys((p && p.done) || {}).length, 0);
+  const BADGES = [['First lesson finished', doneL >= 1], ['3-day streak', s.best >= 3], ['7-day streak', s.best >= 7], ['30-day streak', s.best >= 30],
+    ['10 hours of study', s.total >= 36000], ['50 hours of study', s.total >= 180000], ['10 notes written', Object.keys(S.notes).length >= 10], ['First certificate', Object.keys(S.certs).length >= 1]];
+  main.append(el('h3', null, 'Badges'), el('div', { class: 'badges' }, BADGES.map(([t, on]) => el('span', { class: 'badge' + (on ? ' on' : ''), title: on ? 'Earned' : 'Not yet' }, (on ? '✓ ' : '○ ') + t))),
+    el('p', { class: 'mut' }, 'Study time counts while a video is playing on Toppertube. A day counts toward your streak when you reach your daily goal.'));
+};
+
 /* ---------- watch page ---------- */
-function stopPlayer() { clearInterval(TICK); TICK = null; try { YTP && YTP.destroy && YTP.destroy(); } catch (e) {} YTP = null; }
+function stopPlayer() { if (POSHOOK) { try { POSHOOK(); } catch (e) {} POSHOOK = null; } clearInterval(TICK); TICK = null; try { YTP && YTP.destroy && YTP.destroy(); } catch (e) {} YTP = null; }
 function loadYT() {
   if (window.YT && YT.Player) return Promise.resolve();
   return new Promise((res, rej) => {
@@ -575,6 +666,7 @@ PAGES.watch = (id, q) => {
   remember(v); S.hist = [v.id, ...S.hist.filter(x => x !== v.id)].slice(0, 200); bump(v, 1); save(); setTitle(v.title);
   const list = q.get('list'), ids = list ? listIds(list) : null, idx = ids ? ids.indexOf(v.id) : -1;
   const next = () => { if (ids && idx >= 0 && idx < ids.length - 1) location.hash = `#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}`; };
+  const startAt = resumeAt(v.id);
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' });
   const likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
   const sync = () => {
@@ -590,8 +682,9 @@ PAGES.watch = (id, q) => {
   };
   loadYT().then(() => {
     if (!box.isConnected) return;
-    YTP = new YT.Player(box, { videoId: v.id, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0 },
+    YTP = new YT.Player(box, { videoId: v.id, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: startAt },
       events: { onStateChange: e => { if (e.data === 0) { bump(v, 2); save(); next(); } }, onError: blocked } });
+    TICK = setInterval(() => recordPlay(v.id, v.id), 5000); POSHOOK = () => recordPlay(v.id, v.id, 0);   // remember the spot and the study time
   }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&fs=0`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: v.title })));
   const time = () => { try { return Math.floor(YTP.getCurrentTime()); } catch (e) { return 0; } };
   const seek = t => { try { YTP.seekTo(t, true); YTP.playVideo(); } catch (e) {} };
@@ -603,11 +696,13 @@ PAGES.watch = (id, q) => {
   const acts = el('div', { class: 'acts' }, likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
     el('button', { class: 'btn', type: 'button', onclick: () => makeCourseHere(v) }, ico('book'), 'Make a course'),
     el('a', { class: 'btn', href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
-  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, v.title),
+  const resumeNote = startAt ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(0); delete POS[v.id]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
+  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, v.title),
     el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }));
   const rail = [
+    { ico: 'menu', label: 'Up next', fn: () => togglePanel('lessons'), on: () => document.body.dataset.panel === 'lessons' },
     { ico: 'thumb', label: 'Like', fn: () => { likeB.onclick(); lay.refresh(); }, on: () => S.liked.includes(v.id) },
     { ico: 'clock', label: 'Watch later', fn: () => { laterB.onclick(); lay.refresh(); }, on: () => S.later.includes(v.id) },
     { ico: 'list', label: 'Add to playlist', fn: () => playlistDlg(v) },
@@ -626,15 +721,17 @@ PAGES.settings = () => {
   const file = el('input', { type: 'file', accept: 'application/json', hidden: '', onchange: async e => {
     try { const d = JSON.parse(await e.target.files[0].text());
       for (const k of Object.keys(DEF)) if (k in d && typeof d[k] === typeof DEF[k] && Array.isArray(d[k]) === Array.isArray(DEF[k])) S[k] = d[k];
+      if (d.pos && typeof d.pos === 'object') LS.set('tt_pos', d.pos);
+      if (d.study && typeof d.study === 'object' && d.study.days) LS.set('tt_study', d.study);
       save(); alert('Backup restored.'); location.reload(); } catch (x) { alert('That file is not a Toppertube backup.'); } } });
   const b = (t, f) => el('button', { class: 'btn', type: 'button', onclick: f }, t);
   const pc = el('input', { type: 'checkbox', onchange: e => { S.podcasts = e.target.checked; save(); location.reload(); } }); pc.checked = S.podcasts;
   main.append(el('div', { class: 'row' }, el('label', null, 'Theme ', th)), el('div', { class: 'row', style: 'margin-top:12px' }, el('label', { class: 'row' }, pc, 'Show podcasts (they may contain mature language)')),
     el('p', { class: 'mut' }, 'Your likes, history, playlists, notes and recommendations are saved only in this browser, with no login. Download a backup to keep them safe or move them to another device.'),
-    el('div', { class: 'row' }, b('Download backup', () => download('toppertube-backup.json', JSON.stringify(S), 'application/json')), b('Restore backup', () => file.click()), file),
+    el('div', { class: 'row' }, b('Download backup', () => download('toppertube-backup.json', JSON.stringify({ ...S, pos: POS, study: STUDY }), 'application/json')), b('Restore backup', () => file.click()), file),
     el('h3', null, 'Recommendations'), el('p', { class: 'mut' }, 'The Home page learns from what you watch, like and save. You can start fresh any time.'),
     el('div', { class: 'row' }, b('Reset recommendations', () => { if (confirm('Forget what Toppertube learned about your interests?')) { S.prof = structuredClone(DEF.prof); save(); alert('Done.'); } })),
-    el('h3', null, 'Delete everything'), el('div', { class: 'row' }, b('Delete all my data', () => { if (confirm('Delete likes, history, playlists and notes from this browser?')) { localStorage.removeItem('tt2'); location.hash = '#/home'; location.reload(); } })));
+    el('h3', null, 'Delete everything'), el('div', { class: 'row' }, b('Delete all my data', () => { if (confirm('Delete likes, history, playlists and notes from this browser?')) { localStorage.removeItem('tt2'); localStorage.removeItem('tt_pos'); localStorage.removeItem('tt_study'); location.hash = '#/home'; location.reload(); } })));
 };
 
 /* ---------- shell ---------- */

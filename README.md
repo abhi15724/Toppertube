@@ -16,7 +16,8 @@ Use Settings > Download backup to move them to another device.
 1. Get a YouTube Data API v3 key (Google Cloud Console, free) and restrict it to that API.
 2. Push this folder to GitHub, import it in Vercel (framework "Other", no build command).
 3. In Vercel > Settings > Environment Variables add  YT_API_KEY  = your key, with Production, Preview and Development ticked (the
-   deploy-time build uses it too). Deploy.
+   deploy-time build uses it too). Also add  CERT_SECRET  = any long random text: it signs the certificates (see Certificates).
+   Keep it secret and do not change it later, or old certificates stop verifying. Deploy.
    Never write the key into a file: anything in GitHub can be read. Nothing else is required.
 Local test: `npm i -g vercel`, create .env.local with YT_API_KEY=..., run `vercel dev`.
 
@@ -42,8 +43,7 @@ Every lesson has a red play button, notes, Like, Watch later and Add to playlist
 "How to use this course" note, and when the course is complete it shows the steps to get the certificate. Open any YouTube link from the search bar or Courses; "Make a course"
 converts any video.
 When every lesson is complete, "Get your certificate" asks for the student's name and course name and creates a certificate
-(PDF via the print window, or PNG). The certificate is made in the browser from the student's own progress, so it is a completion
-certificate, not a verified credential.
+(PDF via the print window, or PNG). See Certificates.
 
 ## Speed
 - At deploy time scripts/build-feed.js (the "buildCommand" in vercel.json) writes public/feed.json: the whole lesson list as a plain static
@@ -59,10 +59,29 @@ On every video and lesson page the notes sit beside the player (toggle "Notes be
 fills the screen with the video and the notes side by side (YouTube's own full-screen button is hidden, because it would hide the notes).
 Notes autosave, support timestamps that jump the video, and download as .txt, .md or PDF.
 
+## Certificates
+Each certificate is signed by the server (api/certify.js) with CERT_SECRET, so anyone can check it at the Verify page
+(Courses > Verify a certificate, or the link printed in small type at the bottom of the certificate, also "Copy verification link").
+An edited or invented certificate fails the check (api/verify.js). Before signing, the server checks on YouTube that at least 80% of the
+course's videos exist and works out the real minutes of video, which are printed on the certificate (a course needs at least 5 minutes).
+What it proves: Toppertube issued this certificate, for this course, and the details have not been changed. What it cannot prove: that the
+student watched the videos, because lesson progress is recorded in the student's own browser (there are no logins). If the server cannot
+be reached, a local certificate is made and marked "Not verifiable online yet", with a button to retry. Cost: 1 YouTube quota unit per 50 videos.
+If CERT_SECRET is not set, YT_API_KEY is used as the secret, but then replacing that key makes old certificates fail: set CERT_SECRET.
+
+## Continue watching, streaks and goals
+- Where a student stops is saved while a video plays; Home shows "Continue watching" (videos and course lessons, with a progress bar and
+  Remove), reopening resumes at that spot with a "Start over" button, and thumbnails everywhere show a thin progress bar.
+- Study time is counted while a video is playing. The Progress page (menu) shows today against a daily goal (10 to 90 minutes), the current
+  and best streak (a day counts when the goal is reached; today unfinished does not break yesterday's streak), the last 7 days and badges.
+  Home shows a one-line summary. All of this is saved in the student's browser and is included in Settings > Download backup.
+
 ## Phone held sideways
-On a phone in landscape, a video or lesson page becomes video only: the video fills the screen, with a slim column of icon buttons on the
-right (Back, Like, Watch later, Add to playlist, Make a course, Open on YouTube; on lessons also Mark complete, Previous and Next) and a
-pen button that slides the notes over the video. Turning the phone upright restores the normal page. It is pure CSS (a touch screen
+On a phone in landscape, a video or lesson page becomes video only: the video fills the screen, with a slim two-column rail of icon buttons
+on the right (Back, Like, Watch later, Add to playlist, Make a course, Open on YouTube; on lessons also Lessons, Mark complete, Previous and
+Next). The Lessons button (Up next on a plain video) slides the lesson list over the video, with a play button on every lesson; the pen
+button slides the notes over it. One panel is open at a time, and tapping the button again closes it. Turning the phone upright restores
+the normal page. It is pure CSS (a touch screen
 less than 520 px high), so no extra settings are needed. The browser's own address bar can stay visible on some phones; "Add to Home
 screen" opens the site without it (manifest.webmanifest and the favicon sizes are included).
 

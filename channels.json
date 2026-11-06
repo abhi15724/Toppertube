@@ -187,10 +187,6 @@
   "category": "History & GK"
  },
  {
-  "name": "Dhruv Rathee",
-  "category": "History & GK"
- },
- {
   "name": "Nitish Rajput",
   "category": "History & GK"
  },
@@ -446,7 +442,8 @@
  },
  {
   "name": "Y Combinator",
-  "category": "Business & Finance"
+  "category": "Business & Finance",
+  "handle": "ycombinator"
  },
  {
   "name": "Stanford Graduate School of Business",
@@ -1105,5 +1102,45 @@
   "title": "Raj Shamani",
   "category": "Podcasts",
   "playlist": "PLE0Jo6NF_JYO5-phess8GKafKMtPv3tfZ"
+ },
+ {
+  "name": "Prakhar Gupta",
+  "category": "Podcasts",
+  "handle": "ThePrakharGuptaXperience"
+ },
+ {
+  "name": "AI Engineer",
+  "category": "Programming & Tech",
+  "handle": "aiDotEngineer"
+ },
+ {
+  "name": "Imperfect Pharmacy",
+  "category": "Pharmacy",
+  "handle": "imperfectpharmacy"
+ },
+ {
+  "name": "Google Cloud Tech",
+  "category": "Programming & Tech",
+  "handle": "googlecloudtech"
+ },
+ {
+  "name": "Anthropic",
+  "category": "Programming & Tech",
+  "handle": "anthropic-ai"
+ },
+ {
+  "name": "Claude",
+  "category": "Programming & Tech",
+  "handle": "claude"
+ },
+ {
+  "name": "Stanford Online",
+  "category": "Programming & Tech",
+  "handle": "stanfordonline"
+ },
+ {
+  "name": "Stanford Engineering",
+  "category": "Engineering",
+  "handle": "stanfordengineering"
  }
 ]

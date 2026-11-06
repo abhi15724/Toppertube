@@ -128,7 +128,8 @@ PAGES.courses = (arg, q) => {
     return el('a', { class: 'tile', href: '#/course/' + c.id }, el('b', null, c.title), el('span', { class: 'mut' }, `${lessonsOf(c).length} lessons · ${n}% complete${S.certs[c.id] ? ' · Certified' : ''}`), bar(n)); }))
     : msg('No courses yet. Create one above and it will appear here.'));
   const certs = Object.entries(S.certs);
-  if (certs.length) main.append(el('h3', null, 'My certificates'), el('div', { class: 'tiles' }, certs.map(([id, k]) => el('a', { class: 'tile', href: '#/certificate/' + id }, el('b', null, k.c), el('span', { class: 'mut' }, `${k.n} · ${fmtDate(k.d)}`)))));
+  if (certs.length) main.append(el('h3', null, 'My certificates'), el('div', { class: 'tiles' }, certs.map(([id, k]) => el('a', { class: 'tile', href: '#/certificate/' + id }, el('b', null, k.c), el('span', { class: 'mut' }, `${k.n} · ${fmtDate(k.d)}${k.code ? ' · Verifiable' : ''}`)))));
+  main.append(el('p', { class: 'mut' }, 'Have a certificate to check? ', el('a', { href: '#/verify', style: 'text-decoration:underline' }, 'Verify a certificate'), '.'));
   // featured (curated in courses.json)
   const feat = el('div'); main.append(feat);
   api('/api/courses').then(list => {
@@ -226,6 +227,8 @@ PAGES.learn = arg => {
   const v = getV(l.v) || { id: l.v, title: l.t, channel: '', category: 'Course', seconds: l.d || 0, views: 0, publishedAt: new Date().toISOString(), ext: true };
   remember(v); p.last = k; S.hist = [l.v, ...S.hist.filter(x => x !== l.v)].slice(0, 200); bump(v, 1); save(); setTitle(l.t + ' · ' + c.title);
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' }), side = el('aside');
+  const pkey = `c:${cid}:${k}`, startAt = resumeAt(pkey, l.s || 0, l.e || Infinity) || (l.s || 0);
+  let ticks = 0;
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
   const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else if (pctOf(c) === 100) location.hash = '#/certificate/' + cid; };
   const outline = () => side.replaceChildren(el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
@@ -251,27 +254,31 @@ PAGES.learn = arg => {
   };
   loadYT().then(() => {
     if (!box.isConnected) return;
-    YTP = new YT.Player(box, { videoId: l.v, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: l.s || 0 },
+    YTP = new YT.Player(box, { videoId: l.v, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: startAt },
       events: { onStateChange: e => { if (e.data === 0 && !fin) { fin = true; setDone(true); goNext(); } }, onError: blocked } });
+    POSHOOK = () => recordPlay(pkey, l.v, 0);
     TICK = setInterval(() => {
+      if (++ticks % 5 === 0) recordPlay(pkey, l.v);
       try {
         const t = YTP.getCurrentTime(), dur = YTP.getDuration();
         if (l.e && t >= l.e - 0.5 && !fin) { fin = true; setDone(true); goNext(); }       // end of a chapter
         else if (!l.e && dur > 0 && t >= dur * 0.92) setDone(true);                      // watched 92% of a whole video
       } catch (e) {}
     }, 1000);
-  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${l.v}?autoplay=1&rel=0&fs=0&start=${l.s || 0}`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: l.t })));
+  }).catch(() => box.replaceWith(el('iframe', { src: `https://www.youtube-nocookie.com/embed/${l.v}?autoplay=1&rel=0&fs=0&start=${startAt}`, allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: '', title: l.t })));
   const time = () => { try { return Math.floor(YTP.getCurrentTime()); } catch (e) { return 0; } };
   const seek = t => { try { YTP.seekTo(t, true); YTP.playVideo(); } catch (e) {} };
   const acts = el('div', { class: 'acts' }, doneB,
     i > 0 ? el('a', { class: 'btn', href: learnHref(c, ls[i - 1]) }, '← Previous') : null, i + 1 < ls.length ? el('a', { class: 'btn pri', href: learnHref(c, ls[i + 1]) }, 'Next lesson →') : null,
     likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
     el('a', { class: 'btn', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
-  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, el('h1', { class: 'vt' }, l.t),
+  const resumeNote = startAt > (l.s || 0) ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(l.s || 0); delete POS[pkey]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
+  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }));
   const rail = [
+    { ico: 'menu', label: 'Lessons', fn: () => togglePanel('lessons'), on: () => document.body.dataset.panel === 'lessons' },
     { ico: 'check', label: 'Mark complete', fn: () => { doneB.onclick(); lay.refresh(); }, on: () => !!p.done[k] },
     ...(i > 0 ? [{ ico: 'left', label: 'Previous lesson', href: learnHref(c, ls[i - 1]) }] : []),
     ...(i + 1 < ls.length ? [{ ico: 'right', label: 'Next lesson', href: learnHref(c, ls[i + 1]) }] : []),

@@ -1,6 +1,14 @@
 'use strict';
-/* ====== Course completion certificate: finish every lesson, confirm your name, download ====== */
+/* ====== Course completion certificate: signed by the server, so anyone can verify it ====== */
 const fmtDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const hoursText = m => !m ? '' : m < 90 ? `${m} minutes` : `${(m / 60).toFixed(1).replace('.0', '')} hours`;
+const verifyUrl = c => location.origin + '/#/verify/' + c.code;
+async function postJSON(path, body) {
+  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Request failed');
+  return d;
+}
 function wrapText(t, max) {
   const out = []; let line = '';
   for (const w of String(t).split(' ')) { if (line && (line + ' ' + w).length > max) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); }
@@ -12,8 +20,10 @@ function wrapText(t, max) {
 function certSVG(c) {
   const F = `font-family="Georgia, 'Times New Roman', 'Noto Serif', serif"`, lines = wrapText(c.c, 38);
   const ns = c.n.length > 48 ? 26 : c.n.length > 38 ? 32 : c.n.length > 30 ? 40 : c.n.length > 22 ? 48 : 58;
-  const fs = lines.length > 2 ? 30 : 38, lh = lines.length > 2 ? 38 : 48, sy = 520 + (lines.length - 1) * lh + 44;
+  const big = lines.length > 2, fs = big ? 30 : 38, lh = big ? 36 : 48, y0 = big ? 514 : 520, sy = y0 + (lines.length - 1) * lh + (big ? 38 : 44);
   const t = (y, size, txt, extra = '') => `<text x="550" y="${y}" text-anchor="middle" ${F} font-size="${size}" ${extra}>${esc(txt)}</text>`;
+  const what = (c.k ? `by completing all ${c.k} lessons` : 'by completing all lessons') + (c.m ? ` (${hoursText(c.m)} of video)` : '');
+  const linkLines = c.code ? verifyUrl(c).match(/.{1,125}/g).slice(0, 3) : [];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" width="1100" height="780" role="img" aria-label="Certificate of completion for ${esc(c.n)}">
 <rect width="1100" height="780" fill="#fffdf7"/>
 <rect x="24" y="24" width="1052" height="732" fill="none" stroke="#d62839" stroke-width="6"/>
@@ -25,13 +35,14 @@ ${t(300, 24, 'This is to certify that', 'fill="#555" font-style="italic"')}
 ${t(385, ns, c.n, 'fill="#1b1f3b" font-weight="bold"')}
 <line x1="220" y1="410" x2="880" y2="410" stroke="#bbb" stroke-width="2"/>
 ${t(462, 24, 'has successfully completed the course', 'fill="#555" font-style="italic"')}
-${lines.map((l, i) => t(520 + i * lh, fs, l, 'fill="#d62839" font-weight="bold"')).join('\n')}
-${t(sy, 24, c.k ? `by completing all ${c.k} lessons` : 'by completing all lessons', 'fill="#555"')}
-<line x1="130" y1="668" x2="380" y2="668" stroke="#1b1f3b" stroke-width="1.5"/>
-<text x="255" y="696" text-anchor="middle" ${F} font-size="20" fill="#1b1f3b">${esc(fmtDate(c.d))}</text>
-<line x1="720" y1="668" x2="970" y2="668" stroke="#1b1f3b" stroke-width="1.5"/>
-<text x="845" y="696" text-anchor="middle" ${F} font-size="20" fill="#1b1f3b">Toppertube</text>
-${t(726, 14, `Certificate ID ${c.i}`, 'fill="#777"')}
+${lines.map((l, i) => t(y0 + i * lh, fs, l, 'fill="#d62839" font-weight="bold"')).join('\n')}
+${t(sy, 24, what, 'fill="#555"')}
+<line x1="130" y1="654" x2="380" y2="654" stroke="#1b1f3b" stroke-width="1.5"/>
+<text x="255" y="680" text-anchor="middle" ${F} font-size="20" fill="#1b1f3b">${esc(fmtDate(c.d))}</text>
+<line x1="720" y1="654" x2="970" y2="654" stroke="#1b1f3b" stroke-width="1.5"/>
+<text x="845" y="680" text-anchor="middle" ${F} font-size="20" fill="#1b1f3b">Toppertube</text>
+${t(703, 13, c.code ? `Certificate ID ${c.i} · Verify it online with the link below` : `Certificate ID ${c.i}`, 'fill="#777"')}
+${linkLines.map((s, j) => t(716 + j * 9, 8, s, 'fill="#888"')).join('\n')}
 </svg>`;
 }
 function printCert(c) {
@@ -54,31 +65,70 @@ function certPNG(c) {
 const newCertId = () => [...crypto.getRandomValues(new Uint8Array(5))].map(b => b.toString(16).padStart(2, '0')).join('');
 const todayISO = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
 
+// Ask the server to sign the certificate (it checks the course on YouTube). If that is not possible, make one on this device
+// that cannot be checked online, and say why.
+async function issueCert(name, title, course) {
+  const lessons = lessonsOf(course).map(l => ({ v: l.v, d: l.d || 0 }));
+  try { return await postJSON('/api/certify', { name, course: title, lessons }); }
+  catch (e) { return { n: name, c: title, k: lessons.length, m: 0, d: todayISO(), i: newCertId(), local: true, why: e.message }; }
+}
+
 PAGES.certificate = id => {
   const course = S.courses.find(x => x.id === id), c = S.certs[id];
   if (!c) {
     if (!course) { main.append(msg('Course not found.'), el('a', { class: 'btn', href: '#/courses' }, 'All courses')); return; }
     if (pctOf(course) < 100) { main.append(el('h2', null, course.title), msg('Finish all lessons to get your certificate.'), el('a', { class: 'btn pri', href: '#/course/' + id }, 'Back to course')); return; }
-    const nameI = el('input', { type: 'text', maxlength: 60, value: S.name || '', placeholder: 'Your full name', 'aria-label': 'Your full name', style: 'width:100%' });
-    const courseI = el('input', { type: 'text', maxlength: 120, value: course.title, 'aria-label': 'Course name', style: 'width:100%' });
-    const st = el('p', { class: 'err', role: 'alert' });
-    const make = () => {
+    const nameI = el('input', { type: 'text', maxlength: 50, value: S.name || '', placeholder: 'Your full name', 'aria-label': 'Your full name', style: 'width:100%' });
+    const courseI = el('input', { type: 'text', maxlength: 100, value: course.title.slice(0, 100), 'aria-label': 'Course name', style: 'width:100%' });
+    const st = el('p', { class: 'err', role: 'alert' }), btn = el('button', { class: 'btn pri', type: 'button' }, 'Create my certificate');
+    btn.onclick = async () => {
       const n = nameI.value.trim().replace(/\s+/g, ' '), t = courseI.value.trim().replace(/\s+/g, ' ');
       if (n.length < 2) { st.textContent = 'Please enter your full name.'; nameI.focus(); return; }
       if (!t) { st.textContent = 'Please enter the course name.'; courseI.focus(); return; }
-      S.name = n; S.certs[id] = { n, c: t, k: lessonsOf(course).length, d: todayISO(), i: newCertId() }; save(); route();
+      btn.disabled = true; st.className = 'mut'; st.textContent = 'Creating your certificate…';
+      S.name = n; S.certs[id] = await issueCert(n, t, course); save(); route();
     };
     main.append(el('div', { class: 'top' }, el('h2', null, 'Congratulations, you completed the course!')),
-      el('section', { class: 'panel' }, el('p', null, 'Enter your name and confirm the course name. They will be printed on your certificate. You can open it again any time from Courses → My certificates.'),
+      el('section', { class: 'panel' }, el('p', null, 'Enter your name and confirm the course name. They will be printed on your certificate, which anyone can verify online. You can open it again any time from Courses → My certificates.'),
         el('label', { class: 'mut' }, 'Your name', nameI), el('p'), el('label', { class: 'mut' }, 'Course name', courseI), el('p'),
-        el('div', { class: 'row' }, el('button', { class: 'btn pri', type: 'button', onclick: make }, 'Create my certificate')), st));
+        el('div', { class: 'row' }, btn), st));
     return;
   }
+  const copy = el('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(verifyUrl(c)); copy.textContent = 'Link copied'; } catch (e) { prompt('Copy this verification link', verifyUrl(c)); } } }, 'Copy verification link');
+  const retry = el('button', { class: 'btn pri', type: 'button' }, 'Make it verifiable'), rst = el('p', { class: 'err', role: 'alert' });
+  retry.onclick = async () => {
+    retry.disabled = true; rst.className = 'mut'; rst.textContent = 'Registering your certificate…';
+    const nc = await issueCert(c.n, c.c, course);
+    if (nc.code) { S.certs[id] = nc; save(); route(); } else { rst.className = 'err'; rst.textContent = 'Still not possible: ' + nc.why; retry.disabled = false; }
+  };
+  const info = c.code
+    ? el('p', { class: 'mut' }, '✓ This certificate can be verified online' + (c.m ? ` (${c.k} lessons, ${hoursText(c.m)} of video)` : '') + '. Share the verification link, or anyone can check it under Courses → Verify a certificate.')
+    : el('div', { class: 'panel' }, el('b', null, 'Not verifiable online yet.'), el('p', { class: 'mut' }, `This certificate was made on this device only${c.why ? ' (' + c.why + ')' : ''}. A verifiable one carries a signed code that anyone can check.`), ...(course ? [retry, rst] : []));
   main.append(el('div', { class: 'top' }, el('h2', null, 'Your certificate'), el('div', { class: 'row' },
     el('button', { class: 'btn pri', type: 'button', onclick: () => printCert(c) }, 'Download PDF'),
     el('button', { class: 'btn', type: 'button', onclick: () => certPNG(c) }, 'Download image (PNG)'),
+    ...(c.code ? [copy] : []),
     el('button', { class: 'btn', type: 'button', onclick: () => { delete S.certs[id]; save(); route(); } }, 'Change name or course name'),
     course ? el('a', { class: 'btn', href: '#/course/' + id }, 'Back to course') : el('a', { class: 'btn', href: '#/courses' }, 'All courses'))),
-    el('div', { class: 'certbox', html: certSVG(c) }),
+    info, el('div', { class: 'certbox', html: certSVG(c) }),
     el('p', { class: 'mut' }, 'For PDF, choose “Save as PDF” in the print window.'));
+};
+
+// Public page: paste a link or code from a certificate to check it.
+PAGES.verify = arg => {
+  const code = String(arg || '').trim();
+  main.append(el('div', { class: 'top' }, el('h2', null, 'Verify a certificate')));
+  const inp = el('input', { type: 'text', placeholder: 'Paste the verification link or code', 'aria-label': 'Verification link or code', style: 'flex:1;min-width:220px' });
+  const go = () => { const v = inp.value.trim(), m = v.match(/verify\/([\w.\-]+)/); if (v) location.hash = '#/verify/' + (m ? m[1] : v.replace(/[^\w.\-]/g, '')); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  main.append(el('div', { class: 'row' }, inp, el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Check')), el('p'));
+  if (!code) { main.append(msg('Paste the link that is printed on the certificate (or the code after /verify/ in it).')); return; }
+  const box = el('div', null, msg('Checking certificate…')); main.append(box);
+  fetch('/api/verify?code=' + encodeURIComponent(code)).then(r => r.json()).then(d => {
+    if (!d.valid) { box.replaceChildren(el('p', { class: 'err' }, 'This certificate code is not valid. It may have been changed or copied incorrectly.')); return; }
+    box.replaceChildren(
+      el('p', null, el('b', null, '✓ Valid certificate. '), `Issued by Toppertube to ${d.n} for completing “${d.c}” (${d.k} lessons${d.m ? ', ' + hoursText(d.m) + ' of video' : ''}) on ${fmtDate(d.d)}. Certificate ID ${d.i}.`),
+      el('p', { class: 'mut' }, 'Toppertube checked that the course is made of real YouTube videos and that these details have not been changed since they were issued. Finishing the lessons is recorded by the student’s own progress in the course.'),
+      el('div', { class: 'certbox', html: certSVG({ ...d, code }) }));
+  }).catch(() => box.replaceChildren(el('p', { class: 'err' }, 'Could not check the certificate right now. Please try again.')));
 };
