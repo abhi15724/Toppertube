@@ -35,6 +35,7 @@ const IC = {
   play: '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
   mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+  rot: '<rect x="2" y="7" width="20" height="10" rx="2"/><line x1="18" y1="12" x2="18.01" y2="12"/>',
   clip: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>'
 };
 const ico = n => el('span', { html: `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>` });
@@ -149,7 +150,7 @@ let CAT = [], V = new Map(), CATS = [], CHANS = [], LIB = {}, loadError = '';
 const getV = id => V.get(id) || S.meta[id];
 const main = $('#main'), dlg = $('#dlg');
 const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
-let FLUSH = null, YTP = null, TICK = null, EXITFS = null;
+let FLUSH = null, YTP = null, TICK = null, EXITFS = null, LANDEXIT = null;
 const PAGES = {};
 const setTitle = t => { document.title = t ? t + ' – Toppertube' : 'Toppertube – YouTube for learning'; };
 const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['progress', 'Progress', 'chart'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
@@ -157,6 +158,7 @@ const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', '
 
 function route() {
   if (EXITFS) EXITFS();
+  if (LANDEXIT) LANDEXIT();
   UPDLINE = null;
   document.body.classList.remove('onwatch');
   document.body.dataset.panel = ''; RAILREFRESH = null;
@@ -539,12 +541,35 @@ function railBox(items) {
     ? el('a', { class: 'rb', href: it.href, 'aria-label': it.label, title: it.label, target: it.ext ? '_blank' : null, rel: it.ext ? 'noopener' : null }, ico(it.ico))
     : el('button', { class: 'rb', type: 'button', 'aria-label': it.label, title: it.label, onclick: it.fn }, ico(it.ico)) }));
   return { rail: el('div', { class: 'rail', role: 'toolbar', 'aria-label': 'Video controls' }, btns.map(b => b.node)),
-           refresh: () => btns.forEach(b => { if (b.it.on) b.node.classList.toggle('on', !!b.it.on()); }) };
+           refresh: () => btns.forEach(b => { if (b.it.on) b.node.classList.toggle('on', !!b.it.on()); if (b.it.show) b.node.hidden = !b.it.show(); }) };
 }
+// Landscape button (phones): full screen + rotation lock where the browser allows it; otherwise (iPhone) the page itself is turned sideways with body.fl.
+let LANDON = false, LANDLOCK = false;
+async function enterLand() {
+  if (EXITFS) EXITFS();
+  LANDON = true; LANDLOCK = false; LANDEXIT = leaveLand;
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); LANDLOCK = true; }
+  } catch (e) {}
+  if (!LANDON) return;
+  if (!LANDLOCK && !phoneSideways.matches) document.body.classList.add('fl');
+  if (RAILREFRESH) RAILREFRESH();
+}
+function leaveLand() {
+  if (!LANDON) return;
+  LANDON = false; LANDLOCK = false; LANDEXIT = null;
+  document.body.classList.remove('fl');
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  if (RAILREFRESH) RAILREFRESH();
+}
+document.addEventListener('fullscreenchange', () => { if (LANDON && !document.fullscreenElement) leaveLand(); });
 function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-screen top bar) + video column + notes panel + sideways-phone button rail
   const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
   const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
   const rb = railBox([{ ico: 'left', label: 'Back', fn: () => { if (history.length > 1) history.back(); else location.hash = '#/home'; } }, ...railItems,
+    { ico: 'rot', label: 'Exit landscape', fn: () => leaveLand(), show: () => LANDON },
     { ico: 'pen', label: 'Notes', fn: () => togglePanel('notes'), on: () => document.body.dataset.panel === 'notes' }]);
   const box = el('div', { class: 'fsbox' }, bar, vcol, notes, rb.rail);
   document.body.classList.add('onwatch');   // route() clears this again on every page change
@@ -570,7 +595,8 @@ function layoutButtons(wrap, enter) {
   const sync = () => { sb.textContent = S.split ? 'Notes below video' : 'Notes beside video'; wrap.classList.toggle('split', S.split); };
   sb.onclick = () => { S.split = !S.split; save(); sync(); };
   sync();
-  return [sb, el('button', { class: 'btn', type: 'button', onclick: enter }, 'Full screen + notes')];
+  return [sb, el('button', { class: 'btn', type: 'button', onclick: enter }, 'Full screen + notes'),
+    el('button', { class: 'btn landbtn', type: 'button', onclick: enterLand }, ico('rot'), 'Landscape')];
 }
 
 /* ---------- continue watching, study time and streaks (saved on this device) ---------- */
@@ -761,7 +787,10 @@ $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t
 addEventListener('hashchange', route);
 // turning a phone sideways: leave the "full screen + notes" mode, the sideways layout (video + button rail) takes over
 const phoneSideways = matchMedia('(orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
-if (phoneSideways.addEventListener) phoneSideways.addEventListener('change', e => { if (e.matches && EXITFS) EXITFS(); });
+if (phoneSideways.addEventListener) phoneSideways.addEventListener('change', e => {
+  if (e.matches && EXITFS) EXITFS();
+  if (LANDON && !LANDLOCK) document.body.classList.toggle('fl', !e.matches);   // really turned sideways: the normal sideways layout takes over; back upright: turn the page ourselves
+});
 
 let FEEDAT = '';
 function applyFeed(d) {

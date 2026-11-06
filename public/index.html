@@ -142,6 +142,29 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
   body.onwatch[data-panel=notes] .watch .fsbox .notes{display:flex;position:fixed;top:0;bottom:0;right:calc(94px + env(safe-area-inset-right,0px));left:auto;width:min(380px,62vw);height:auto;margin:0;z-index:94;border:0;border-radius:0;overflow:auto;background:var(--bg)}
   body.onwatch[data-panel=lessons] .watch>aside{display:block;position:fixed;top:0;bottom:0;left:env(safe-area-inset-left,0px);width:min(330px,50vw);margin:0;padding:10px 12px;z-index:94;overflow:auto;background:var(--bg)}
 }
+/* Landscape button (phones only): the page turns sideways by itself. Where the browser can lock rotation it does that and the rules above take over; where it can't (iPhone), body.fl turns the watch page 90 degrees and re-uses the same layout. */
+.landbtn{display:none}
+@media (pointer:coarse) and (max-width:600px){.landbtn{display:inline-flex}}
+.rail .rb[hidden]{display:none}
+body.onwatch.fl{overflow:hidden}
+body.onwatch.fl .watch{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;margin:0;display:block;z-index:90;background:#000;transform-origin:0 0;transform:translateX(100vw) rotate(90deg)}
+
+ body.fl{padding:0}
+ body.onwatch.fl{overflow:hidden}
+ body.onwatch.fl header,body.onwatch.fl nav{display:none}
+ body.onwatch.fl main{padding:0}
+ body.onwatch.fl .watch>aside{display:none}
+ body.onwatch.fl .watch .fsbox{position:fixed;inset:0;z-index:90;background:#000;display:block;padding:0;margin:0}
+ body.onwatch.fl .watch .fsbox .fsbar{display:none}
+ body.onwatch.fl .watch .fsbox .vcol{display:block;height:100%}
+ body.onwatch.fl .watch .fsbox .vcol>:not(.frame):not(.err){display:none}
+ body.onwatch.fl .watch .fsbox .vcol .frame{position:fixed;top:0;bottom:0;left:0px;right:calc(94px + 0px);width:auto;height:auto;aspect-ratio:auto;border-radius:0;background:#000}
+ body.onwatch.fl .watch .fsbox .vcol .frame iframe,body.onwatch.fl .watch .fsbox .vcol .frame>div{position:absolute;inset:0;width:100%;height:100%}
+ body.onwatch.fl .watch .fsbox .vcol .err{position:fixed;left:8px;right:calc(102px + 0px);top:8px;z-index:95;background:rgba(0,0,0,.85);color:#fff;padding:6px 10px;border-radius:8px}
+ body.onwatch.fl .watch .fsbox .rail{display:grid;grid-template-columns:repeat(2,40px);grid-auto-rows:40px;gap:6px;justify-content:center;align-content:center;position:fixed;top:0;bottom:0;right:0;width:calc(94px + 0px);padding:0 0px 0 0;z-index:95;background:#0b0b0b;overflow-y:auto}
+ body.onwatch.fl .watch .fsbox .notes{display:none}
+ body.onwatch.fl[data-panel=notes] .watch .fsbox .notes{display:flex;position:fixed;top:0;bottom:0;right:calc(94px + 0px);left:auto;width:min(380px,62%);height:auto;margin:0;z-index:94;border:0;border-radius:0;overflow:auto;background:var(--bg)}
+ body.onwatch.fl[data-panel=lessons] .watch>aside{display:block;position:fixed;top:0;bottom:0;left:0px;width:min(330px,50%);margin:0;padding:10px 12px;z-index:94;overflow:auto;background:var(--bg)}
 .howto{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 14px}.howto summary{cursor:pointer;font-weight:600}
 .howto ol,.panel ol{margin:8px 0 2px;padding-left:20px}.howto li,.panel li{margin:4px 0}
 .notes .hd{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
@@ -166,7 +189,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 </header>
 <div class="shell"><nav id="nav" aria-label="Main"></nav><main id="main" tabindex="-1"></main></div>
 <dialog id="dlg"></dialog>
-<script defer src="app.js?v=1"></script>
+<script defer src="app.js?v=2"></script>
 <script defer src="courses.js?v=1"></script>
 <script defer src="certificate.js?v=1"></script>
 </body>
