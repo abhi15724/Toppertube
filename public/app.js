@@ -157,11 +157,13 @@ const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', '
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
 function route() {
-  if (EXITFS) EXITFS();
-  if (LANDEXIT) LANDEXIT();
+  const stay = ['watch', 'learn'].includes((location.hash.slice(1).split('?')[0] || '/home').split('/').filter(Boolean)[0]);   // next lesson: keep full screen / landscape
+  const panel = document.body.dataset.panel || '';
+  if (EXITFS) EXITFS(stay);
+  if (!stay) { FSWANT = false; if (LANDEXIT) LANDEXIT(); }
   UPDLINE = null;
   document.body.classList.remove('onwatch');
-  document.body.dataset.panel = ''; RAILREFRESH = null;
+  document.body.dataset.panel = stay ? panel : ''; RAILREFRESH = null;
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
   const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
@@ -545,16 +547,20 @@ function railBox(items) {
 }
 // Landscape button (phones): full screen + rotation lock where the browser allows it; otherwise (iPhone) the page itself is turned sideways with body.fl.
 let LANDON = false, LANDLOCK = false;
-async function enterLand() {
-  if (EXITFS) EXITFS();
-  LANDON = true; LANDLOCK = false; LANDEXIT = leaveLand;
+async function landFullscreen() {   // browser full screen + rotation lock, as far as this browser allows; needs a tap to start
   try {
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
     if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); LANDLOCK = true; }
   } catch (e) {}
   if (!LANDON) return;
-  if (!LANDLOCK && !phoneSideways.matches) document.body.classList.add('fl');
+  document.body.classList.toggle('fl', !LANDLOCK && !phoneSideways.matches);   // no lock (iPhone, or the browser let go): turn the page sideways ourselves
   if (RAILREFRESH) RAILREFRESH();
+}
+function enterLand() {
+  if (EXITFS) EXITFS(true);
+  FSWANT = false;
+  LANDON = true; LANDLOCK = false; LANDEXIT = leaveLand;
+  return landFullscreen();
 }
 function leaveLand() {
   if (!LANDON) return;
@@ -564,7 +570,24 @@ function leaveLand() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   if (RAILREFRESH) RAILREFRESH();
 }
-document.addEventListener('fullscreenchange', () => { if (LANDON && !document.fullscreenElement) leaveLand(); });
+// The browser can drop full screen by itself (keyboard opening for the notes, a system swipe, the video player). Landscape mode stays on:
+// the layout keeps itself sideways, and the next tap puts the browser back in full screen. Only "Exit landscape" or leaving the page ends it.
+document.addEventListener('fullscreenchange', () => {
+  if (!LANDON || document.fullscreenElement) return;
+  LANDLOCK = false;
+  document.body.classList.toggle('fl', !phoneSideways.matches);
+  if (RAILREFRESH) RAILREFRESH();
+});
+document.addEventListener('click', () => { if (LANDON && !document.fullscreenElement) landFullscreen(); });
+// "Full screen + notes": the whole page goes full screen (not just the box), so it survives the box being rebuilt when the next lesson opens.
+// It ends only with the Exit button. If the browser drops full screen on its own, the layout stays and the next tap puts it back.
+let FSWANT = false;
+function goFS() {
+  const r = document.documentElement;
+  if (!document.fullscreenElement && r.requestFullscreen) r.requestFullscreen().catch(() => {});
+  try { if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(() => {}); } catch (e) {}   // typing Esc in the notes should not leave full screen (hold Esc to leave)
+}
+document.addEventListener('click', () => { if (FSWANT && !LANDON && !document.fullscreenElement) goFS(); });
 function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-screen top bar) + video column + notes panel + sideways-phone button rail
   const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
   const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
@@ -576,18 +599,18 @@ function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-s
   RAILREFRESH = rb.refresh;
   rb.refresh();
   let on = false;
-  const onKey = e => { if (e.key === 'Escape') exit(); };
-  function exit() {
+  // keepFS: the page is only being swapped (next lesson), so the layout is torn down but the browser stays in full screen
+  function exit(keepFS) {
     if (!on) return; on = false; EXITFS = null;
-    box.classList.remove('fsmode'); document.body.classList.remove('fsbody'); bar.hidden = true; document.removeEventListener('keydown', onKey);
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    box.classList.remove('fsmode'); document.body.classList.remove('fsbody'); bar.hidden = true;
+    if (!keepFS) { FSWANT = false; if (document.fullscreenElement && !LANDON) document.exitFullscreen().catch(() => {}); }
   }
   function enter() {
-    on = true; EXITFS = exit; box.classList.add('fsmode'); document.body.classList.add('fsbody'); bar.hidden = false; document.addEventListener('keydown', onKey);
-    if (box.requestFullscreen) box.requestFullscreen().catch(() => {});   // hides the browser bars too; the CSS mode still works without it
+    on = true; FSWANT = true; EXITFS = exit; box.classList.add('fsmode'); document.body.classList.add('fsbody'); bar.hidden = false;
+    goFS();
   }
-  exitB.onclick = exit;
-  box.addEventListener('fullscreenchange', () => { if (on && !document.fullscreenElement) exit(); });
+  exitB.onclick = () => exit();
+  if (FSWANT) enter();   // the last lesson ended and the next one opened: stay in full screen
   return { box, enter, refresh: rb.refresh };
 }
 function layoutButtons(wrap, enter) {
@@ -788,7 +811,7 @@ addEventListener('hashchange', route);
 // turning a phone sideways: leave the "full screen + notes" mode, the sideways layout (video + button rail) takes over
 const phoneSideways = matchMedia('(orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
 if (phoneSideways.addEventListener) phoneSideways.addEventListener('change', e => {
-  if (e.matches && EXITFS) EXITFS();
+  if (e.matches && EXITFS) { EXITFS(true); FSWANT = false; }
   if (LANDON && !LANDLOCK) document.body.classList.toggle('fl', !e.matches);   // really turned sideways: the normal sideways layout takes over; back upright: turn the page ourselves
 });
 
