@@ -479,6 +479,34 @@ function exportNotes(keys, fmt) {
   if (fmt === 'txt') return download(name + '.txt', items.map(n => `${n.title}\n${n.sub || ''}\n\n${n.text}`).join('\n\n----------\n\n'), 'text/plain;charset=utf-8');
   download(name + '.md', items.map(n => `# ${n.title}\n\n${n.sub || ''}\n\n${n.text}\n`).join('\n---\n\n'), 'text/markdown;charset=utf-8');
 }
+// Reading a notes PDF back in: pdf.js is loaded from a CDN only when somebody uploads a PDF.
+let PDFJS = null;
+async function pdfLib() {
+  if (PDFJS) return PDFJS;
+  const base = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+  await new Promise((ok, no) => { const s = document.createElement('script'); s.src = base + 'pdf.min.js'; s.onload = ok; s.onerror = () => no(new Error('load')); document.head.append(s); });
+  PDFJS = window.pdfjsLib; PDFJS.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.min.js';
+  return PDFJS;
+}
+async function pdfText(file) {
+  const lib = await pdfLib(), doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise, pages = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const tc = await (await doc.getPage(p)).getTextContent(); let out = '', lastY = null;
+    for (const it of tc.items) {
+      const y = it.transform[5];
+      if (lastY !== null && Math.abs(y - lastY) > 2) out += '\n';
+      out += it.str; lastY = it.hasEOL ? null : y; if (it.hasEOL) out += '\n';
+    }
+    pages.push(out.replace(/[ \t]+\n/g, '\n').trim());
+  }
+  return pages.join('\n\n').replace(/\n{3,}/g, '\n\n');
+}
+// drop s from the start of t, ignoring line breaks and spaces (a PDF wraps long lines); returns t unchanged if it doesn't start with s
+function dropHead(t, s) {
+  const sc = (s || '').replace(/\s/g, ''); if (!sc) return t;
+  let m = 0, k = 0; for (; k < t.length && m < sc.length; k++) { if (/\s/.test(t[k])) continue; if (t[k] === sc[m]) m++; else return t; }
+  return m === sc.length ? t.slice(k).replace(/^\s+/, '') : t;
+}
 function noteBox(key, info, o = {}) {
   const ta = el('textarea', { class: 'nt', placeholder: 'Type your notes here. They save automatically on this device.', 'aria-label': 'Notes' });
   ta.value = (S.notes[key] || {}).text || '';
@@ -501,8 +529,32 @@ function noteBox(key, info, o = {}) {
     const t = `[${o.stampPre || ''}${fmtDur(o.time())}] `, p = ta.selectionStart ?? ta.value.length;
     ta.value = ta.value.slice(0, p) + t + ta.value.slice(ta.selectionEnd ?? p); ta.focus(); ta.selectionStart = ta.selectionEnd = p + t.length; ta.dispatchEvent(new Event('input'));
   } }, ico('clock'), 'Add timestamp') : null;
+  // Upload: bring back a downloaded .txt / .md file and carry on writing at the end of it
+  const strip = t => {
+    t = t.replace(/\r\n/g, '\n');
+    for (const h of [`# ${info.title}\n\n${info.sub || ''}\n\n`, `${info.title}\n${info.sub || ''}\n\n`]) if (t.startsWith(h)) { t = t.slice(h.length); break; }
+    return t.replace(/\n---\s*$/, '').trim();
+  };
+  const pick = el('input', { type: 'file', accept: '.txt,.md,.pdf,text/plain,text/markdown,application/pdf', hidden: '', onchange: async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    const isPdf = /\.pdf$/i.test(f.name) || f.type === 'application/pdf';
+    if (f.size > (isPdf ? 25e6 : 2e6)) { alert('That file is too big to be notes.'); return; }
+    let add = '';
+    if (isPdf) {
+      st.textContent = 'Reading PDF…';
+      try { add = dropHead(dropHead(await pdfText(f), info.title), info.sub).trim(); }
+      catch (err) { st.textContent = ta.value ? 'Saved' : ''; alert('Could not read that PDF. Check your internet connection, or upload a .txt or .md file instead.'); return; }
+      st.textContent = ta.value ? 'Saved' : '';
+      if (!add) { alert('No text found in that PDF. Scanned or image-only PDFs cannot be read.'); return; }
+    } else add = strip(await f.text());
+    if (!add) { alert('That file is empty.'); return; }
+    if (ta.value.trim() && !confirm('Add the file to the end of the notes you already have here?\n\nOK = add it below your notes\nCancel = change nothing')) return;
+    ta.value = ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n\n' + add + '\n' : add + '\n';
+    commit(); ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; ta.scrollTop = ta.scrollHeight;
+  } });
+  const up = el('button', { class: 'btn', type: 'button', title: 'Open a notes file (.txt, .md or .pdf) you downloaded earlier and carry on writing', onclick: () => pick.click() }, 'Upload notes');
   drawChips();
-  return el('div', null, el('div', { class: 'hd' }, el('div', { class: 'row' }, stamp, st), el('div', { class: 'row' }, el('span', { class: 'mut' }, 'Download:'), ex('txt'), ex('md'), ex('pdf'))), ta, chips);
+  return el('div', null, el('div', { class: 'hd' }, el('div', { class: 'row' }, stamp, st), el('div', { class: 'row' }, el('span', { class: 'mut' }, 'Download:'), ex('txt'), ex('md'), ex('pdf'), up, pick)), ta, chips);
 }
 const noteHref = k => { if (k.startsWith('cn:')) return '#/course/' + k.slice(3); if (k.startsWith('c:')) { const m = k.split(':'); return '#/learn/' + m[1] + '/' + encodeURIComponent(m.slice(2).join(':')); } return getV(k) ? '#/watch/' + k : ''; };
 PAGES.notes = () => {
