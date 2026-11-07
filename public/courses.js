@@ -38,6 +38,17 @@ async function openAny(input) {
 /* ---------- building courses ---------- */
 const lk = l => l.v + '@' + (l.s || 0);
 const lessonsOf = c => c.modules.flatMap(m => m.lessons);
+// One notes document for the whole course, so the notes stay put when the next lesson opens. Notes written earlier, lesson by lesson, are merged into it once (in course order, under the lesson's title) and nothing is lost.
+const courseNoteKey = id => 'cn:' + id;
+function courseNotes(c) {
+  const key = courseNoteKey(c.id), old = lessonsOf(c).map((l, i) => ({ l, i, k: `c:${c.id}:${lk(l)}` })).filter(x => S.notes[x.k] && S.notes[x.k].text);
+  if (old.length) {
+    const parts = old.map(x => `## ${x.i + 1}. ${x.l.t}\n${S.notes[x.k].text.trim()}`), cur = S.notes[key] ? S.notes[key].text.trim() : '';
+    S.notes[key] = { title: `${c.title} · course notes`, sub: `Course: ${c.title}`, text: (cur ? cur + '\n\n' : '') + parts.join('\n\n'), at: Date.now() };
+    old.forEach(x => delete S.notes[x.k]); save();
+  }
+  return key;
+}
 const prog = id => S.prog[id] || (S.prog[id] = { done: {}, last: '' });
 const pctOf = c => { const l = lessonsOf(c), p = prog(c.id); return l.length ? Math.round(100 * l.filter(x => p.done[lk(x)]).length / l.length) : 0; };
 const learnHref = (c, l) => `#/learn/${c.id}/${encodeURIComponent(lk(l))}`;
@@ -163,7 +174,8 @@ PAGES.course = id => {
       : el('ol', null, el('li', null, 'Press “Get your certificate” at the top of this page.'), el('li', null, 'Type your name, check the course name, then press “Create my certificate”.'),
           el('li', null, 'Download it as a PDF or an image. Later you can open it from Courses → My certificates.')));
   main.append(head, howto, box);
-  const noteKeys = () => lessonsOf(c).map(l => `c:${id}:${lk(l)}`).filter(k => S.notes[k]);
+  courseNotes(c);
+  const noteKeys = () => [courseNoteKey(id)].filter(k => S.notes[k]);
   const outline = () => download(slug(c.title) + '-outline.md', `# ${c.title}\n\n` + c.modules.map((m, i) => `## ${i + 1}. ${m.title}\n\n` + m.lessons.map((l, j) => `${j + 1}. ${l.t}${l.d ? ' (' + fmtDur(l.d) + ')' : ''}`).join('\n')).join('\n\n') + '\n', 'text/markdown;charset=utf-8');
   const del = () => { if (confirm(`Delete the course “${c.title}”? Your notes stay in Notes.`)) { S.courses = S.courses.filter(x => x !== c); delete S.prog[id]; save(); location.hash = '#/courses'; } };
   function drawHead() {
@@ -201,7 +213,7 @@ PAGES.course = id => {
           const cb = el('input', { type: 'checkbox', 'aria-label': 'Mark complete: ' + l.t }); cb.checked = on;
           cb.onchange = () => { if (cb.checked) p.done[k] = 1; else delete p.done[k]; save(); draw(); };
           box.append(el('div', { class: 'lesson' + (on ? ' done' : '') }, cb, el('a', { class: 'play', href: learnHref(c, l), 'aria-label': 'Play lesson: ' + l.t, title: 'Play this lesson' }, ico('play')), el('a', { href: learnHref(c, l) }, l.t),
-            S.notes[`c:${id}:${k}`] ? el('span', { class: 'mut', title: 'Has notes' }, '✎') : null, el('span', { class: 'mut' }, l.d ? fmtDur(l.d) : '')));
+            el('span', { class: 'mut' }, l.d ? fmtDur(l.d) : '')));
         }
       });
     });
@@ -275,8 +287,8 @@ PAGES.learn = arg => {
   const resumeNote = startAt > (l.s || 0) ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(l.s || 0); delete POS[pkey]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
   const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
-  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
-    noteBox(`c:${cid}:${k}`, { title: `${c.title}: ${l.t}`, sub: `Course: ${c.title}${m ? ' · ' + m.title : ''} · https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}` }, { time, seek }));
+  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
+    noteBox(courseNotes(c), { title: `${c.title} · course notes`, sub: `Course: ${c.title}` }, { time, stampPre: `Lesson ${i + 1} · ` }));
   const rail = [
     { ico: 'menu', label: 'Lessons', fn: () => togglePanel('lessons'), on: () => document.body.dataset.panel === 'lessons' },
     { ico: 'check', label: 'Mark complete', fn: () => { doneB.onclick(); lay.refresh(); }, on: () => !!p.done[k] },

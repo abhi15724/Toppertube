@@ -498,13 +498,13 @@ function noteBox(key, info, o = {}) {
   ta.addEventListener('blur', commit); FLUSH = commit;
   const ex = f => el('button', { class: 'btn', type: 'button', onclick: () => { commit(); exportNotes([key], f); } }, f === 'pdf' ? 'PDF' : '.' + f);
   const stamp = o.time ? el('button', { class: 'btn', type: 'button', onclick: () => {
-    const t = `[${fmtDur(o.time())}] `, p = ta.selectionStart ?? ta.value.length;
+    const t = `[${o.stampPre || ''}${fmtDur(o.time())}] `, p = ta.selectionStart ?? ta.value.length;
     ta.value = ta.value.slice(0, p) + t + ta.value.slice(ta.selectionEnd ?? p); ta.focus(); ta.selectionStart = ta.selectionEnd = p + t.length; ta.dispatchEvent(new Event('input'));
   } }, ico('clock'), 'Add timestamp') : null;
   drawChips();
   return el('div', null, el('div', { class: 'hd' }, el('div', { class: 'row' }, stamp, st), el('div', { class: 'row' }, el('span', { class: 'mut' }, 'Download:'), ex('txt'), ex('md'), ex('pdf'))), ta, chips);
 }
-const noteHref = k => { if (k.startsWith('c:')) { const m = k.split(':'); return '#/learn/' + m[1] + '/' + encodeURIComponent(m.slice(2).join(':')); } return getV(k) ? '#/watch/' + k : ''; };
+const noteHref = k => { if (k.startsWith('cn:')) return '#/course/' + k.slice(3); if (k.startsWith('c:')) { const m = k.split(':'); return '#/learn/' + m[1] + '/' + encodeURIComponent(m.slice(2).join(':')); } return getV(k) ? '#/watch/' + k : ''; };
 PAGES.notes = () => {
   let NEW = null; const open = new Set(), box = el('div');
   main.append(el('div', { class: 'top' }, el('h2', null, 'My notes'), el('div', { class: 'row' },
@@ -525,7 +525,7 @@ PAGES.notes = () => {
       if (open.has(k)) { box.append(editor(k, n)); return; }
       box.append(el('div', { class: 'nrow' }, el('b', null, n.title), el('p', { class: 'mut' }, n.sub || ''), el('p', null, n.text.length > 220 ? n.text.slice(0, 220) + '…' : n.text),
         el('div', { class: 'row' }, el('button', { class: 'btn', type: 'button', onclick: () => { open.add(k); draw(); } }, 'Edit'),
-          noteHref(k) ? el('a', { class: 'btn', href: noteHref(k) }, 'Open lesson') : null,
+          noteHref(k) ? el('a', { class: 'btn', href: noteHref(k) }, k.startsWith('cn:') ? 'Open course' : 'Open lesson') : null,
           ...['txt', 'md', 'pdf'].map(f => el('button', { class: 'btn', type: 'button', onclick: () => exportNotes([k], f) }, f === 'pdf' ? 'PDF' : '.' + f)),
           el('button', { class: 'btn', type: 'button', onclick: () => { if (confirm('Delete this note?')) { delete S.notes[k]; save(); draw(); } } }, 'Delete'))));
     });
