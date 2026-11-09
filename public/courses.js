@@ -241,9 +241,21 @@ PAGES.learn = arg => {
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' }), side = el('aside');
   const pkey = `c:${cid}:${k}`, startAt = resumeAt(pkey, l.s || 0, l.e || Infinity) || (l.s || 0);
   let ticks = 0;
+  // Certificate link: appears as soon as every lesson is complete (no automatic jump, so notes being written are not interrupted)
+  const certBanners = [];
+  const mkBanner = () => {
+    const a = el('a', { class: 'btn pri', href: '#/certificate/' + cid }), d = el('div', { class: 'panel certbanner', style: 'display:none;margin:10px 0' }, el('b', null, '🎓 Course complete! '), a);
+    certBanners.push({ d, a }); return d;
+  };
+  const certUI = () => {
+    const full = pctOf(c) === 100;
+    certBanners.forEach(x => { x.d.style.display = full ? '' : 'none'; x.a.textContent = S.certs[cid] ? 'View your certificate →' : 'Get your certificate →'; });
+    try { lay.refresh(); } catch (e) {}
+  };
+  const sideBanner = mkBanner();
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
-  const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else if (pctOf(c) === 100) location.hash = '#/certificate/' + cid; };
-  const outline = () => side.replaceChildren(el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
+  const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else certUI(); };
+  const outline = () => side.replaceChildren(sideBanner, el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
     ...c.modules.map(mm => el('div', null, el('b', { style: 'display:block;margin:10px 0 4px' }, mm.title),
       ...mm.lessons.map(x => el('div', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), 'aria-current': x === l ? 'true' : null },
         el('span', null, p.done[lk(x)] ? '✓' : '○'),
@@ -255,7 +267,7 @@ PAGES.learn = arg => {
     likeB.replaceChildren(ico('thumb'), lk2 ? 'Liked' : 'Like'); likeB.classList.toggle('on', lk2);
     laterB.replaceChildren(ico('clock'), w ? 'Saved' : 'Watch later'); laterB.classList.toggle('on', w);
   };
-  const setDone = on => { if (on) { if (!p.done[k]) { p.done[k] = 1; bump(v, 1); } } else delete p.done[k]; save(); sync(); outline(); };
+  const setDone = on => { if (on) { if (!p.done[k]) { p.done[k] = 1; bump(v, 1); } } else delete p.done[k]; save(); sync(); outline(); certUI(); };
   doneB.onclick = () => setDone(!p.done[k]);
   likeB.onclick = () => { toggle('liked', v, 3); sync(); }; laterB.onclick = () => { toggle('later', v, 2); sync(); };
   sync(); outline();
@@ -286,8 +298,8 @@ PAGES.learn = arg => {
     el('a', { class: 'btn', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
   const resumeNote = startAt > (l.s || 0) ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(l.s || 0); delete POS[pkey]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
   const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
-    el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), acts);
-  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
+    el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), mkBanner(), acts);
+  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, mkBanner(), el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
     noteBox(courseNotes(c), { title: `${c.title} · course notes`, sub: `Course: ${c.title}` }, { time, stampPre: `Lesson ${i + 1} · ` }));
   const rail = [
     { ico: 'menu', label: 'Lessons', fn: () => togglePanel('lessons'), on: () => document.body.dataset.panel === 'lessons' },
@@ -297,8 +309,10 @@ PAGES.learn = arg => {
     { ico: 'thumb', label: 'Like', fn: () => { likeB.onclick(); lay.refresh(); }, on: () => S.liked.includes(v.id) },
     { ico: 'clock', label: 'Watch later', fn: () => { laterB.onclick(); lay.refresh(); }, on: () => S.later.includes(v.id) },
     { ico: 'list', label: 'Add to playlist', fn: () => playlistDlg(v) },
-    { ico: 'ext', label: 'Open on YouTube', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, ext: true }];
+    { ico: 'ext', label: 'Open on YouTube', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, ext: true },
+    { ico: 'check', label: S.certs[cid] ? 'View certificate' : 'Get certificate', href: '#/certificate/' + cid, show: () => pctOf(c) === 100 }];
   const lay = layoutBox(vcol, notes, l.t, rail), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
+  certUI();
 };
