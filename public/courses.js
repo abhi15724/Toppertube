@@ -254,7 +254,19 @@ PAGES.learn = arg => {
   };
   const sideBanner = mkBanner();
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
-  const goNext = () => { if (i + 1 < ls.length) location.hash = learnHref(c, ls[i + 1]); else certUI(); };
+  // Moving on to the next lesson: a 3-second heads-up that can be cancelled or skipped; after the last lesson the certificate link shows instead
+  const toast = el('div', { class: 'nexttoast', role: 'status', 'aria-live': 'polite', style: 'display:none' });
+  let nextT = null;
+  const stopNext = () => { clearInterval(nextT); nextT = null; toast.style.display = 'none'; };
+  const goNext = () => {
+    if (i + 1 >= ls.length) { certUI(); return; }
+    const nx = ls[i + 1], go = () => { stopNext(); location.hash = learnHref(c, nx); }; let n = 3;
+    const paint = () => toast.replaceChildren(el('div', null, el('b', null, `Next lesson in ${n}…`), el('div', { class: 'mut' }, nx.t)),
+      el('button', { class: 'btn', type: 'button', onclick: stopNext }, 'Cancel'), el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Play now'));
+    toast.style.display = ''; paint();
+    clearInterval(nextT);
+    nextT = setInterval(() => { if (!toast.isConnected) { clearInterval(nextT); return; } if (--n <= 0) go(); else paint(); }, 1000);
+  };
   const outline = () => side.replaceChildren(sideBanner, el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
     ...c.modules.map(mm => el('div', null, el('b', { style: 'display:block;margin:10px 0 4px' }, mm.title),
       ...mm.lessons.map(x => el('div', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), 'aria-current': x === l ? 'true' : null },
@@ -274,7 +286,7 @@ PAGES.learn = arg => {
   let fin = false;
   const blocked = () => {
     err.replaceChildren("The owner doesn't allow this video to play here. ", el('a', { href: 'https://www.youtube.com/watch?v=' + l.v, target: '_blank', rel: 'noopener', style: 'text-decoration:underline' }, 'Watch on YouTube'));
-    setTimeout(() => { if (!fin) { fin = true; goNext(); } }, 3000);
+    if (!fin) { fin = true; goNext(); }
   };
   loadYT().then(() => {
     if (!box.isConnected) return;
@@ -311,7 +323,7 @@ PAGES.learn = arg => {
     { ico: 'list', label: 'Add to playlist', fn: () => playlistDlg(v) },
     { ico: 'ext', label: 'Open on YouTube', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, ext: true },
     { ico: 'check', label: S.certs[cid] ? 'View certificate' : 'Get certificate', href: '#/certificate/' + cid, show: () => pctOf(c) === 100 }];
-  const lay = layoutBox(vcol, notes, l.t, rail), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side);
+  const lay = layoutBox(vcol, notes, l.t, rail), wrap = el('div', { class: 'watch' }, el('div', null, lay.box), side, toast);
   acts.append(...layoutButtons(wrap, lay.enter));
   main.append(wrap);
   certUI();

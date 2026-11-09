@@ -143,6 +143,8 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
   body.onwatch[data-panel=lessons] .watch>aside{display:block;position:fixed;top:0;bottom:0;left:env(safe-area-inset-left,0px);width:min(330px,50vw);margin:0;padding:10px 12px;z-index:94;overflow:auto;background:var(--bg)}
 }
 /* Landscape button (phones only): the page turns sideways by itself. Where the browser can lock rotation it does that and the rules above take over; where it can't (iPhone), body.fl turns the watch page 90 degrees and re-uses the same layout. */
+.nexttoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;max-width:min(92%,560px);padding:12px 16px;border-radius:12px;background:#111;color:#fff;border:1px solid #444;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+.nexttoast .mut{color:#bbb;font-size:13px}
 .landbtn{display:none}
 @media (pointer:coarse) and (max-width:600px){.landbtn{display:inline-flex}}
 .rail .rb[hidden]{display:none}
@@ -190,7 +192,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 <div class="shell"><nav id="nav" aria-label="Main"></nav><main id="main" tabindex="-1"></main></div>
 <dialog id="dlg"></dialog>
 <script defer src="app.js?v=7"></script>
-<script defer src="courses.js?v=3"></script>
+<script defer src="courses.js?v=4"></script>
 <script defer src="certificate.js?v=1"></script>
 </body>
 </html>
