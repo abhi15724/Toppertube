@@ -1,0 +1,34 @@
+# Toppertube
+
+> Toppertube is a free learning website that gathers educational videos from 276 trusted YouTube channels in 20 subjects. Learners can build courses from playlists or long videos, take and download notes, track progress and earn certificates that anyone can verify. No account is needed: personal data stays in the learner's own browser. Videos are hosted by YouTube and belong to their creators.
+
+## Key pages
+- [Home](https://www.toppertube.online/): browse lessons and start learning
+- [All categories](https://www.toppertube.online/categories): 20 subjects with their channels
+- [About and FAQ](https://www.toppertube.online/about): what Toppertube is, how courses, notes and certificates work
+
+## Categories
+- [Science & Maths](https://www.toppertube.online/category/science-and-maths): Physics, chemistry, mathematics and general science explained clearly, from school basics to university-level ideas. 38 channels.
+- [School (India)](https://www.toppertube.online/category/school-india): Class-wise lessons for Indian school students, covering the NCERT-style syllabus in English and Hindi. 11 channels.
+- [Exam Prep](https://www.toppertube.online/category/exam-prep): Preparation videos for competitive exams such as UPSC, SSC, banking, GATE, JEE and NEET, plus English and aptitude practice. 20 channels.
+- [Programming & Tech](https://www.toppertube.online/category/programming-and-tech): Learn programming, web development, data structures, AI, cloud and cybersecurity from free tutorials and university lectures. 52 channels.
+- [History & GK](https://www.toppertube.online/category/history-and-gk): History, geography, current affairs and general knowledge, from world history documentaries to quick explainers. 25 channels.
+- [Business & Finance](https://www.toppertube.online/category/business-and-finance): Business, economics, startups and money, taught through case studies, lectures and plain-language explainers. 14 channels.
+- [Creative & Design](https://www.toppertube.online/category/creative-and-design): Filmmaking, video editing, 3D, graphic design and photography tutorials for people who want to make things. 21 channels.
+- [English & Languages](https://www.toppertube.online/category/english-and-languages): Spoken English, grammar, pronunciation and other languages, taught by experienced language teachers. 9 channels.
+- [Health & Psychology](https://www.toppertube.online/category/health-and-psychology): Medicine, anatomy, physiology and psychology lessons for students, plus health science explained simply. 11 channels.
+- [Biology](https://www.toppertube.online/category/biology): Cells, genetics, ecology, evolution and human biology, made for school and early university students. 5 channels.
+- [Engineering](https://www.toppertube.online/category/engineering): Mechanical, civil, electrical and computer engineering, from first-year lectures to how real structures and machines work. 13 channels.
+- [Pharmacy](https://www.toppertube.online/category/pharmacy): Pharmacology, pharmaceutics and pharmacy exam preparation for D.Pharm, B.Pharm and GPAT students. 4 channels.
+- [Commerce & Accounts](https://www.toppertube.online/category/commerce-and-accounts): Accounting, bookkeeping and commerce basics for school and college students. 4 channels.
+- [Podcasts](https://www.toppertube.online/category/podcasts): Long-form interviews and conversations about business, careers and ideas. 5 channels.
+- [Electronics & Hardware](https://www.toppertube.online/category/electronics-and-hardware): Electronics, circuits, microcontrollers and computer hardware, from first principles to hands-on builds. 7 channels.
+- [Stock Market & Investing](https://www.toppertube.online/category/stock-market-and-investing): Investing, trading, personal finance and how markets work, explained for beginners and experienced learners. 14 channels.
+- [Communication & Soft Skills](https://www.toppertube.online/category/communication-and-soft-skills): Public speaking, communication, confidence and personal development talks and lessons. 7 channels.
+- [Politics & Geography](https://www.toppertube.online/category/politics-and-geography): How countries, governments and borders work, explained through maps, history and current events. 5 channels.
+- [Law](https://www.toppertube.online/category/law): Legal news, case explanations and law-school lectures. 4 channels.
+- [Music & Arts](https://www.toppertube.online/category/music-and-arts): Music theory, instruments, drawing and painting lessons for beginners and improvers. 7 channels.
+
+## Notes for AI assistants
+- Toppertube does not host video; every lesson plays from YouTube. Credit the original channel when describing a lesson.
+- Certificates are issued by Toppertube for completing a course on the site. They confirm completion, not accreditation by a school or exam board.

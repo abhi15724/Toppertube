@@ -103,3 +103,18 @@ Inside a channel page, search covers titles and descriptions of the loaded lesso
 
 ## Favicon
 public/favicon.png and favicon-32.png come from your T logo image. The header keeps the text logo.
+
+## SEO
+`scripts/build-seo.js` runs at deploy time (first part of `buildCommand`). The app uses #/hash routes that search engines cannot index one by
+one, so the script writes real pages from channels.json: /categories, /category/<name> (one per category), /about (with FAQ markup), plus
+`sitemap.xml`, `llms.txt` and the crawlable intro block inside index.html (between the `seo:start` / `seo:end` markers; the app replaces it
+when it loads). `robots.txt` welcomes search and AI crawlers and points to the sitemap; `og-image.png` is the share image.
+After a deploy: add the site in Google Search Console and Bing Webmaster Tools, submit https://www.toppertube.online/sitemap.xml, and use
+"Request indexing" on the home page. Editing channels.json is enough to refresh every category page on the next deploy.
+
+### Lesson pages (/watch/<id>)
+Every lesson in the feed has its own crawlable address, https://www.toppertube.online/watch/<YouTube id>. `api/watch.js` serves the normal app page
+with that lesson's title, description, canonical address, share tags, VideoObject markup and readable text filled in (the facts come from
+`lib/videos.index.json`, written at deploy time by scripts/build-feed.js, so no YouTube quota is used). The app then opens the lesson at /#/watch/<id>.
+Videos outside the feed still open but are marked noindex. `sitemap.xml` is an index of `sitemap-pages.xml` and `sitemap-videos-N.xml`
+(one URL per lesson). Needs YT_API_KEY at build time; without it only the category, about and home pages are listed.

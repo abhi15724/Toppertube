@@ -152,7 +152,7 @@ const main = $('#main'), dlg = $('#dlg');
 const F = { dur: 'any', date: 'any', sort: 'rec', cat: 'all' };
 let FLUSH = null, YTP = null, TICK = null, EXITFS = null, LANDEXIT = null;
 const PAGES = {};
-const setTitle = t => { document.title = t ? t + ' – Toppertube' : 'Toppertube – YouTube for learning'; };
+const setTitle = t => { document.title = t ? t + ' – Toppertube' : 'Toppertube – Free Learning Videos, Courses & Certificates'; };
 const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', 'Courses', 'book'], ['progress', 'Progress', 'chart'], ['podcasts', 'Podcasts', 'mic'], ['liked', 'Liked', 'thumb'], ['history', 'History', 'history'],
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
@@ -763,7 +763,15 @@ function loadYT() {
 }
 PAGES.watch = (id, q) => {
   const v = getV(id);
-  if (!v) { main.append(msg('This lesson is no longer in the feed.'), el('a', { class: 'btn', href: '#/home' }, 'Back to home')); return; }
+  if (!v) {   // not in the feed (for example a /watch/<id> link to another video): ask the server for it once
+    const gone = () => main.replaceChildren(msg('This lesson is no longer in the feed.'), el('a', { class: 'btn', href: '#/home' }, 'Back to home'));
+    main.append(msg('Loading lesson…'));
+    getJSON('/api/video?v=' + encodeURIComponent(id)).then(d => {
+      if (!d.video || !d.video.embeddable || !location.hash.includes(id)) throw new Error('gone');
+      d.video.ext = true; remember(d.video); route();
+    }).catch(() => { if (location.hash.includes(id)) gone(); });
+    return;
+  }
   remember(v); S.hist = [v.id, ...S.hist.filter(x => x !== v.id)].slice(0, 200); bump(v, 1); save(); setTitle(v.title);
   const list = q.get('list'), ids = list ? listIds(list) : null, idx = ids ? ids.indexOf(v.id) : -1;
   const next = () => { if (ids && idx >= 0 && idx < ids.length - 1) location.hash = `#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}`; };
@@ -878,6 +886,9 @@ function applyFeed(d) {
 }
 async function getJSON(url) { const r = await fetch(url), d = await r.json(); if (!r.ok) throw new Error(d.error || 'Request failed'); return d; }
 (async () => {
+  // /watch/<id> is the crawlable address of a lesson (served by api/watch.js); inside the app the same lesson lives at /#/watch/<id>
+  const wp = /^\/watch\/([\w-]{11})\/?$/.exec(location.pathname);
+  if (wp) history.replaceState(null, '', '/#/watch/' + wp[1] + location.search);
   applyTheme();
   main.replaceChildren(msg('Loading lessons…'));
   // 1) /feed.json is a plain static file made at deploy time, so the page can show lessons almost instantly

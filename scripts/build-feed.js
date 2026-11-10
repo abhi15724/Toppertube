@@ -1,7 +1,7 @@
 // Runs at deploy time (see "buildCommand" in vercel.json). It does three things, none of which can fail the deploy:
 //  1. stamps a version on the script files in index.html, so browsers can cache them for a year and still get every update;
 //  2. writes public/feed.json, a ready-made copy of the lesson list that is served instantly as a static file;
-//  3. writes channels.resolved.json, so the server does not have to look channels up again at run time.
+//  3. writes lib/videos.index.json (lesson facts for the /watch/<id> pages and the sitemaps) and channels.resolved.json, so the server does not have to look channels up again at run time.
 // Needs YT_API_KEY in the Vercel environment (steps 2 and 3 are skipped without it).
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
@@ -20,6 +20,9 @@ try {
     const { getCatalog, resolvedMap } = require('../lib/catalog');
     const cat = await getCatalog();
     fs.writeFileSync(process.env.FEED_OUT || path.join(root, 'public', 'feed.json'), JSON.stringify(cat));
+    // compact copy of the lesson facts, read by api/watch.js (a crawlable page per lesson) and scripts/build-seo.js (sitemaps)
+    fs.writeFileSync(process.env.INDEX_OUT || path.join(root, 'lib', 'videos.index.json'), JSON.stringify({ updatedAt: cat.updatedAt,
+      v: cat.items.map(i => [i.id, i.title, i.channel, i.category, i.publishedAt, i.seconds, i.views, i.d || ''])  }));
     fs.writeFileSync(process.env.RESOLVED_OUT || path.join(root, 'channels.resolved.json'), JSON.stringify(resolvedMap()));
     console.log(`Feed snapshot written: ${cat.items.length} videos from ${cat.channels.length} channels.`);
     if (cat.skipped.length) console.log(`Channels that could not be matched (${cat.skipped.length}): ${cat.skipped.join(', ')}`);
