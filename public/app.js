@@ -195,7 +195,7 @@ const chanHref = c => '#/channel/' + encodeURIComponent(c);
 function card(v, o = {}) {
   const href = o.href || ('#/watch/' + v.id + (o.list ? '?list=' + encodeURIComponent(o.list) : ''));
   const pr = POS[v.id], frac = o.frac != null ? o.frac : (pr && pr.d ? pr.t / pr.d : 0);   // how much of it was watched
-  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', loading: 'lazy', decoding: 'async' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null,
+  const thumb = el('div', { class: 'th' }, el('img', { src: `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`, alt: '', width: 320, height: 180, loading: o.eager ? 'eager' : 'lazy', decoding: 'async', fetchpriority: o.eager ? 'high' : 'auto' }), v.seconds ? el('span', { class: 'dur' }, fmtDur(v.seconds)) : null,
     frac > 0.02 && frac < 0.97 ? el('div', { class: 'pbar' }, el('i', { style: `width:${Math.round(frac * 100)}%` })) : null);
   const stats = `${fmtViews(v.views)} views • ${ago(v)}`;
   const w = el('div', { class: 'cw' + (o.small ? ' sm' : '') + (o.cur ? ' cur' : '') });
@@ -241,7 +241,7 @@ function listPage(title, get, o = {}) {
     ['all', ...CATS].forEach(c => chips.append(el('button', { class: 'chip', type: 'button', 'aria-pressed': String(F.cat === c), onclick: () => { F.cat = c; draw(); } }, c === 'all' ? 'All' : c)));
   }
   function paint() {
-    box.replaceChildren(items.length ? el('div', { class: 'grid' }, items.slice(0, n).map(v => card(v, { list: o.list, note: o.note && o.note(v), remove: o.remove && (() => { o.remove(v); draw(); }) }))) : msg(o.empty || 'No lessons match.'));
+    box.replaceChildren(items.length ? el('div', { class: 'grid' }, items.slice(0, n).map((v, i) => card(v, { eager: i < 4, list: o.list, note: o.note && o.note(v), remove: o.remove && (() => { o.remove(v); draw(); }) }))) : msg(o.empty || 'No lessons match.'));
     more.hidden = n >= items.length;
   }
   function draw() {
@@ -793,7 +793,7 @@ function loadYT() {
   return new Promise((res, rej) => {
     const prev = window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady = () => { if (prev) prev(); res(); };
     if (!document.getElementById('ytapi')) { const s = el('script', { id: 'ytapi', src: 'https://www.youtube.com/iframe_api' }); s.onerror = rej; document.head.append(s); }
-    setTimeout(() => rej(new Error('timeout')), 6000);
+    setTimeout(() => rej(new Error('timeout')), 12000);
   });
 }
 PAGES.watch = (id, q) => {
@@ -944,6 +944,9 @@ async function getJSON(url) { const r = await fetch(url), d = await r.json(); if
   // 1) /feed.json is a plain static file made at deploy time, so the page can show lessons almost instantly
   let snap = null;
   try { snap = await getJSON('/feed.json'); applyFeed(snap); route(); } catch (e) { snap = null; }
+  // warm up the YouTube player while the student browses, so the first video starts quickly
+  const warm = () => loadYT().catch(() => {});
+  if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 4000 }); else setTimeout(warm, 2500);
   // 2) the live feed (/api/feed) is only needed when there is no snapshot or it is more than 6 hours old; it is applied quietly
   //    and shows up on the next page change, so the screen never jumps while someone is reading
   if (!snap || Date.now() - new Date(snap.updatedAt || 0) > 6 * 3600e3) {
@@ -951,3 +954,5 @@ async function getJSON(url) { const r = await fetch(url), d = await r.json(); if
     if (!snap) route();
   }
 })();
+// remembers thumbnails, the lesson list and scripts on the device (see sw.js): repeat visits open much faster
+if ('serviceWorker' in navigator) addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
