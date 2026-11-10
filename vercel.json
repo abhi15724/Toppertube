@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/build-feed.js; node scripts/build-seo.js; cp public/index.html public/404.html; for r in longs courses course learn certificate verify progress podcasts liked later history cats cat channels channel playlists pl notes settings search; do cp public/index.html public/$r.html; done",
+  "buildCommand": "node scripts/build-feed.js; node scripts/build-seo.js; node scripts/build-routes.js",
   "outputDirectory": "public",
   "functions": {
     "api/*.js": {
