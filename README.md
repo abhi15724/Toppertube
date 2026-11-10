@@ -118,3 +118,9 @@ with that lesson's title, description, canonical address, share tags, VideoObjec
 `lib/videos.index.json`, written at deploy time by scripts/build-feed.js, so no YouTube quota is used). The app then opens the lesson at /#/watch/<id>.
 Videos outside the feed still open but are marked noindex. `sitemap.xml` is an index of `sitemap-pages.xml` and `sitemap-videos-N.xml`
 (one URL per lesson). Needs YT_API_KEY at build time; without it only the category, about and home pages are listed.
+
+### Videos that cannot play outside YouTube
+If a video's owner turns off embedding, the video can still be added to a course, opened by link, or kept in a playlist. In place of the player the
+page shows a card with a "Watch on YouTube" button (opens a new tab, at the chapter's start time for chapter lessons). In a course the lesson keeps
+its notes box, Mark complete, the 3-second next-lesson countdown and the certificate link; because the video plays on YouTube, the app cannot see
+progress, so the learner presses "I've watched it" (or Mark complete) and study time is not counted for that lesson.

@@ -26,12 +26,11 @@ function ingest(v) {
 }
 async function openAny(input) {
   const { video, list } = parseYT(input);
-  if (!video && list) { location.hash = '#/courses?list=' + encodeURIComponent(input); return; }
+  if (!video && list) { navTo('#/courses?list=' + encodeURIComponent(input)); return; }
   if (!video) { alert('That does not look like a YouTube link.'); return; }
   try {
     const d = await api('/api/video?v=' + video);
-    if (!d.video.embeddable) throw new Error("The owner doesn't allow this video to play outside YouTube.");
-    ingest(d.video); save(); location.hash = '#/watch/' + video;
+    ingest(d.video); save(); navTo('#/watch/' + video);
   } catch (e) { alert(e.message); }
 }
 
@@ -67,14 +66,13 @@ async function courseFromPlaylist(input, title) {
   const d = await api('/api/playlist?list=' + encodeURIComponent(list));
   if (!d.items.length) throw new Error('No playable videos were found in that playlist.');
   const lessons = d.items.map(v => { ingest(v); return { v: v.id, t: v.title, s: 0, d: v.seconds }; });
-  const note = (d.truncated ? 'Only the first 300 videos were imported. ' : '') + (d.items.length < d.total ? `${d.total - d.items.length} private or non-embeddable videos were skipped.` : '');
+  const note = (d.truncated ? 'Only the first 300 videos were imported. ' : '') + (d.items.length < d.total ? `${d.total - d.items.length} private or removed videos were skipped.` : '');
   return mkCourse(title || d.title, lessons, 'playlist', list, note.trim());
 }
 async function courseFromVideo(input, title) {
   const { video } = parseYT(input);
   if (!video) throw new Error('Paste a YouTube video link.');
   const d = await api('/api/video?v=' + video), v = d.video;
-  if (!v.embeddable) throw new Error("The owner doesn't allow this video to play outside YouTube.");
   ingest(v);
   let lessons, note;
   if (d.chapters.length >= 3) {
@@ -91,11 +89,11 @@ async function courseFromLinks(text, title) {
   if (!ids.length) throw new Error('Paste at least one YouTube video link.');
   const d = await api('/api/videos?ids=' + ids.join(',')), by = new Map(d.items.map(v => [v.id, v]));
   const lessons = ids.map(id => by.get(id)).filter(Boolean).map(v => { ingest(v); return { v: v.id, t: v.title, s: 0, d: v.seconds }; });
-  if (!lessons.length) throw new Error('None of those videos can be played here.');
-  return mkCourse(title, lessons, 'links', '', lessons.length < ids.length ? `${ids.length - lessons.length} videos were skipped (private or not embeddable).` : '');
+  if (!lessons.length) throw new Error('None of those videos could be found. They may be private or removed.');
+  return mkCourse(title, lessons, 'links', '', lessons.length < ids.length ? `${ids.length - lessons.length} videos were skipped (private or removed).` : '');
 }
 async function makeCourseHere(v) {
-  try { const c = await courseFromVideo('https://www.youtube.com/watch?v=' + v.id, ''); S.courses.unshift(c); save(); location.hash = '#/course/' + c.id; }
+  try { const c = await courseFromVideo('https://www.youtube.com/watch?v=' + v.id, ''); S.courses.unshift(c); save(); navTo('#/course/' + c.id); }
   catch (e) { alert(e.message); }
 }
 
@@ -128,7 +126,7 @@ PAGES.courses = (arg, q) => {
     try {
       const t = ti.value.trim();
       const c = mode === 'playlist' ? await courseFromPlaylist(text, t) : mode === 'video' ? await courseFromVideo(text, t) : await courseFromLinks(text, t);
-      S.courses.unshift(c); save(); location.hash = '#/course/' + c.id;
+      S.courses.unshift(c); save(); navTo('#/course/' + c.id);
     } catch (e) { st.className = 'err'; st.textContent = e.message; btn.disabled = false; }
   }
   main.append(el('section', { class: 'panel' }, el('h3', { style: 'margin-top:0' }, 'Create a course'), chips, hint, inp, ti, el('p'), el('div', { class: 'row' }, btn), st));
@@ -148,9 +146,9 @@ PAGES.courses = (arg, q) => {
     feat.replaceChildren(el('h3', null, 'Featured courses'), el('div', { class: 'tiles' }, list.map(f => el('div', { class: 'tile' },
       el('b', null, f.title), el('span', { class: 'mut' }, [f.category, f.description].filter(Boolean).join(' · ')),
       el('div', { class: 'row', style: 'margin-top:10px' }, el('button', { class: 'btn pri', type: 'button', onclick: async e => {
-        const have = S.courses.find(c => c.ref === f.playlist); if (have) { location.hash = '#/course/' + have.id; return; }
+        const have = S.courses.find(c => c.ref === f.playlist); if (have) { navTo('#/course/' + have.id); return; }
         e.target.disabled = true; e.target.textContent = 'Building…';
-        try { const c = await courseFromPlaylist('https://www.youtube.com/playlist?list=' + f.playlist, f.title); S.courses.unshift(c); save(); location.hash = '#/course/' + c.id; }
+        try { const c = await courseFromPlaylist('https://www.youtube.com/playlist?list=' + f.playlist, f.title); S.courses.unshift(c); save(); navTo('#/course/' + c.id); }
         catch (x) { alert(x.message); e.target.disabled = false; e.target.textContent = 'Start course'; } } }, 'Start course'))))));
   }).catch(() => {});
 };
@@ -177,7 +175,7 @@ PAGES.course = id => {
   courseNotes(c);
   const noteKeys = () => [courseNoteKey(id)].filter(k => S.notes[k]);
   const outline = () => download(slug(c.title) + '-outline.md', `# ${c.title}\n\n` + c.modules.map((m, i) => `## ${i + 1}. ${m.title}\n\n` + m.lessons.map((l, j) => `${j + 1}. ${l.t}${l.d ? ' (' + fmtDur(l.d) + ')' : ''}`).join('\n')).join('\n\n') + '\n', 'text/markdown;charset=utf-8');
-  const del = () => { if (confirm(`Delete the course “${c.title}”? Your notes stay in Notes.`)) { S.courses = S.courses.filter(x => x !== c); delete S.prog[id]; save(); location.hash = '#/courses'; } };
+  const del = () => { if (confirm(`Delete the course “${c.title}”? Your notes stay in Notes.`)) { S.courses = S.courses.filter(x => x !== c); delete S.prog[id]; save(); navTo('#/courses'); } };
   function drawHead() {
     const ls = lessonsOf(c), p = prog(id), done = ls.filter(x => p.done[lk(x)]).length, n = pctOf(c), cl = contOf(c);
     head.replaceChildren(el('div', { class: 'top' }, el('h2', null, c.title), el('div', { class: 'row' },
@@ -260,7 +258,7 @@ PAGES.learn = arg => {
   const stopNext = () => { clearInterval(nextT); nextT = null; toast.style.display = 'none'; };
   const goNext = () => {
     if (i + 1 >= ls.length) { certUI(); return; }
-    const nx = ls[i + 1], go = () => { stopNext(); location.hash = learnHref(c, nx); }; let n = 3;
+    const nx = ls[i + 1], go = () => { stopNext(); navTo(learnHref(c, nx)); }; let n = 3;
     const paint = () => toast.replaceChildren(el('div', null, el('b', null, `Next lesson in ${n}…`), el('div', { class: 'mut' }, nx.t)),
       el('button', { class: 'btn', type: 'button', onclick: stopNext }, 'Cancel'), el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Play now'));
     toast.style.display = ''; paint();
@@ -284,11 +282,17 @@ PAGES.learn = arg => {
   likeB.onclick = () => { toggle('liked', v, 3); sync(); }; laterB.onclick = () => { toggle('later', v, 2); sync(); };
   sync(); outline();
   let fin = false;
-  const blocked = () => {
-    err.replaceChildren("The owner doesn't allow this video to play here. ", el('a', { href: 'https://www.youtube.com/watch?v=' + l.v, target: '_blank', rel: 'noopener', style: 'text-decoration:underline' }, 'Watch on YouTube'));
-    if (!fin) { fin = true; goNext(); }
+  // A video that cannot play outside YouTube stays a normal lesson: watch it on YouTube, then come back for the notes and Mark complete
+  const frame = el('div', { class: 'frame' }, box);
+  const showBlocked = code => {
+    clearInterval(TICK); TICK = null; POSHOOK = null;
+    try { YTP.destroy(); } catch (e) {} YTP = null;
+    const last = i + 1 >= ls.length;
+    frame.replaceChildren(blockedCard(l.v, l.s || 0, [el('button', { class: 'btn', type: 'button', onclick: () => { setDone(true); if (!last) goNext(); } }, last ? "I've watched it · Mark complete" : "I've watched it · Complete & next")], blockedWhy(code)));
   };
-  loadYT().then(() => {
+  const blocked = e => { v.blocked = true; remember(v); save(); showBlocked(e && e.data); };
+  if (v.blocked) showBlocked();
+  else loadYT().then(() => {
     if (!box.isConnected) return;
     YTP = new YT.Player(box, { videoId: l.v, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: startAt },
       events: { onStateChange: e => { if (e.data === 0 && !fin) { fin = true; setDone(true); goNext(); } }, onError: blocked } });
@@ -309,7 +313,7 @@ PAGES.learn = arg => {
     likeB, laterB, el('button', { class: 'btn', type: 'button', onclick: () => playlistDlg(v) }, ico('list'), 'Add to playlist'),
     el('a', { class: 'btn', href: `https://www.youtube.com/watch?v=${l.v}${l.s ? '&t=' + l.s + 's' : ''}`, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
   const resumeNote = startAt > (l.s || 0) ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(l.s || 0); delete POS[pkey]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
-  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
+  const vcol = el('div', { class: 'vcol' }, frame, err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), mkBanner(), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, mkBanner(), el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
     noteBox(courseNotes(c), { title: `${c.title} · course notes`, sub: `Course: ${c.title}` }, { time, stampPre: `Lesson ${i + 1} · ` }));

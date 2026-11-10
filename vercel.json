@@ -88,12 +88,21 @@
       "source": "/index.html",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "rewrites": [
     {
       "source": "/watch/:id",
       "destination": "/api/watch?id=:id"
+    },
+    {
+      "source": "/(home|longs|courses|course|learn|certificate|verify|progress|podcasts|liked|later|history|cats|cat|channels|channel|playlists|pl|notes|settings|search)(/.*)?",
+      "destination": "/index.html"
     }
   ]
 }

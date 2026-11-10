@@ -1,7 +1,7 @@
 // GET /watch/<id>  (rewritten to /api/watch?id=<id> in vercel.json)
 // Serves the normal app page (public/index.html) with the lesson's own title, description, canonical address, share tags, VideoObject
 // markup and readable text already filled in, so search engines and AI assistants see a real page per lesson. The app then loads as usual
-// and turns the address into /#/watch/<id>.
+// and shows the lesson at the same address, /watch/<id>.
 // Facts come from lib/videos.index.json, written at deploy time by scripts/build-feed.js, so this never uses YouTube quota.
 // Videos that are not in the index still open (the app fetches them itself) but are marked noindex.
 const fs = require('fs'), path = require('path');
@@ -15,26 +15,35 @@ const human = sec => { const h = Math.floor(sec / 3600), m = Math.floor(sec % 36
 const views = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.0', '') + ' million' : n >= 1e3 ? Math.round(n / 1e3) + ' thousand' : String(n || 0);
 
 let TPL = null, IDX = null;
-function template() { if (!TPL) TPL = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'); return TPL; }
-function index() {
-  if (IDX) return IDX;
-  IDX = { by: new Map(), chan: new Map(), cat: new Map() };
-  try {
-    const rows = require('../lib/videos.index.json').v;   // [id, title, channel, category, publishedAt, seconds, views, text], newest first
-    for (const r of rows) {
-      IDX.by.set(r[0], r);
-      for (const [m, k] of [[IDX.chan, r[2]], [IDX.cat, r[3]]]) { if (!m.has(k)) m.set(k, []); if (m.get(k).length < 12) m.get(k).push(r); }
-    }
-  } catch (e) { /* no index yet (first deploy without a YouTube key): every lesson is served as noindex */ }
-  return IDX;
+function addRows(rows) {   // rows: [id, title, channel, category, publishedAt, seconds, views, text], newest first
+  IDX = IDX || { by: new Map(), chan: new Map(), cat: new Map() };
+  for (const r of rows) {
+    IDX.by.set(r[0], r);
+    for (const [m, k] of [[IDX.chan, r[2]], [IDX.cat, r[3]]]) { if (!m.has(k)) m.set(k, []); if (m.get(k).length < 12) m.get(k).push(r); }
+  }
 }
+// Everything this page needs is read from files bundled with the function; if they were not bundled, it fetches the same two things
+// (the app page and /feed.json) from the site itself, so the page still comes out right.
+async function load() {
+  if (!TPL) {
+    try { TPL = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'); }
+    catch (e) { TPL = await (await fetch(SITE + '/')).text(); }
+  }
+  if (!IDX) {
+    try { addRows(require('../lib/videos.index.json').v); } catch (e) {}
+    if (!IDX) {
+      try { const f = await (await fetch(SITE + '/feed.json')).json(); addRows(f.items.map(i => [i.id, i.title, i.channel, i.category, i.publishedAt, i.seconds, i.views, i.d || ''])); } catch (e) {}
+    }
+    IDX = IDX || { by: new Map(), chan: new Map(), cat: new Map() };
+  }
+}
+const template = () => TPL, index = () => IDX;
 
 function render(id) {
   const ix = index(), r = ix.by.get(id);
   let html = template();
   const set = (re, to) => { html = html.replace(re, () => to); };
   const canonical = `${SITE}/watch/${id}`;
-  set(/<meta charset="utf-8">/, '<meta charset="utf-8">\n<base href="/">');   // the app's files are relative, and this page lives under /watch/
   if (!r) {   // not one of the catalogue lessons: still opens, but is kept out of search results
     set(/<meta name="robots" content="[^"]*">/, '<meta name="robots" content="noindex,follow">');
     set(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${canonical}">`);
@@ -84,18 +93,23 @@ ${more(ix.cat.get(category) || [], 'More in ' + esc(category))}
   return html;
 }
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   const id = String(req.query.id || '');
   if (!/^[\w-]{11}$/.test(id)) { res.statusCode = 302; res.setHeader('Location', '/'); return res.end(); }
   try {
+    await load();
     const html = render(id);
+    // handy for checking a deploy: curl -I https://www.toppertube.online/watch/<id>
+    res.setHeader('X-Watch-Page', IDX.by.has(id) ? 'rendered' : IDX.by.size ? 'unknown-video-noindex' : 'no-lesson-data');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     res.statusCode = 200;
     res.end(html);
   } catch (e) {
     console.error(e);
-    res.statusCode = 302; res.setHeader('Location', `/#/watch/${id}`); res.end();   // never leave a visitor on an error: the app can still open it
+    res.statusCode = 302; res.setHeader('Location', '/'); res.end();   // never leave a visitor on an error page
   }
 };
 module.exports.render = render;
+module.exports.load = load;
+module.exports.addRows = addRows;

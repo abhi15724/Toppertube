@@ -95,7 +95,7 @@ ul.cols{columns:2;column-gap:28px;padding-left:20px}ul.cols li{break-inside:avoi
 ${ld({ '@context': 'https://schema.org', '@graph': graph })}
 </head>
 <body>
-<header><a class="logo" href="/">Topper<b>Tube</b></a><nav aria-label="Main"><a href="/categories">Categories</a><a href="/about">About</a><a href="/#/courses">Courses</a></nav></header>
+<header><a class="logo" href="/">Topper<b>Tube</b></a><nav aria-label="Main"><a href="/categories">Categories</a><a href="/about">About</a><a href="/courses">Courses</a></nav></header>
 <main>
 ${body}
 </main>
@@ -112,12 +112,12 @@ ${body}
     const blurb = BLURB[cat] || `Free ${cat} videos from trusted educational channels.`;
     const body = `<h1>${esc(cat)}: free learning videos</h1>
 <p>${esc(blurb)} ${NAME} brings together ${names.length} YouTube channel${names.length === 1 ? '' : 's'} in this category, so you can learn, take notes and build a course without leaving one place.</p>
-<p><a class="cta" href="/#/cat/${encodeURIComponent(cat)}">Watch ${esc(cat)} lessons</a></p>
+<p><a class="cta" href="/cat/${encodeURIComponent(cat)}">Watch ${esc(cat)} lessons</a></p>
 <h2>Channels in ${esc(cat)}</h2>
-<ul class="cols">${names.map(n => `<li><a href="/#/channel/${encodeURIComponent(n)}">${esc(n)}</a></li>`).join('')}</ul>
+<ul class="cols">${names.map(n => `<li><a href="/channel/${encodeURIComponent(n)}">${esc(n)}</a></li>`).join('')}</ul>
 ${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(byCat.get(cat) || []).slice(0, 30).map(r => `<li><a href="/watch/${r[0]}">${esc(r[1])}</a> <span class="mut">${esc(r[2])}</span></li>`).join('')}</ul>` : ''}
 <h2>How to learn with ${NAME}</h2>
-<p>Pick a channel, open any lesson, and write notes next to the video. To follow a topic in order, <a href="/#/courses">create a course</a> from a playlist or a long video. Finish every lesson to earn a certificate you can share and verify. No account is needed, and your progress is saved in your browser.</p>
+<p>Pick a channel, open any lesson, and write notes next to the video. To follow a topic in order, <a href="/courses">create a course</a> from a playlist or a long video. Finish every lesson to earn a certificate you can share and verify. No account is needed, and your progress is saved in your browser.</p>
 <p class="mut">See also: <a href="/categories">all categories</a> · <a href="/about">about ${NAME}</a></p>`;
     write(`category/${slug(cat)}.html`, page({
       p: catUrl(cat), title: `${cat} videos & courses | ${NAME}`,

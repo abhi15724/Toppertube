@@ -2,7 +2,7 @@
 /* ====== Course completion certificate: signed by the server, so anyone can verify it ====== */
 const fmtDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const hoursText = m => !m ? '' : m < 90 ? `${m} minutes` : `${(m / 60).toFixed(1).replace('.0', '')} hours`;
-const verifyUrl = c => location.origin + '/#/verify/' + c.code;
+const verifyUrl = c => location.origin + '/verify/' + c.code;
 async function postJSON(path, body) {
   const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const d = await r.json().catch(() => ({}));
@@ -119,7 +119,7 @@ PAGES.verify = arg => {
   const code = String(arg || '').trim();
   main.append(el('div', { class: 'top' }, el('h2', null, 'Verify a certificate')));
   const inp = el('input', { type: 'text', placeholder: 'Paste the verification link or code', 'aria-label': 'Verification link or code', style: 'flex:1;min-width:220px' });
-  const go = () => { const v = inp.value.trim(), m = v.match(/verify\/([\w.\-]+)/); if (v) location.hash = '#/verify/' + (m ? m[1] : v.replace(/[^\w.\-]/g, '')); };
+  const go = () => { const v = inp.value.trim(), m = v.match(/verify\/([\w.\-]+)/); if (v) navTo('#/verify/' + (m ? m[1] : v.replace(/[^\w.\-]/g, ''))); };
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
   main.append(el('div', { class: 'row' }, inp, el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Check')), el('p'));
   if (!code) { main.append(msg('Paste the link that is printed on the certificate (or the code after /verify/ in it).')); return; }

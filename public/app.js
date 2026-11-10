@@ -1,12 +1,16 @@
 'use strict';
 /* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
+// Clean addresses: /watch/<id>, /courses, /cat/Biology ... (the code below still writes routes as '#/watch/<id>'; they become real paths here)
+function toPath(h) { const u = String(h).replace(/^#?\/?/, '/'); return u === '/home' ? '/' : u.replace(/^\/home\?/, '/?'); }
+const fixHref = v => typeof v === 'string' && v.startsWith('#/') ? toPath(v) : v;
+function navTo(h) { const u = toPath(h); if (u !== location.pathname + location.search) history.pushState(null, '', u); route(); }
 function el(t, a, ...k) {
   const e = document.createElement(t);
   for (const [x, v] of Object.entries(a || {})) {
     if (x === 'class') e.className = v; else if (x === 'html') e.innerHTML = v;
     else if (x.startsWith('on')) e.addEventListener(x.slice(2), v);
-    else if (v !== false && v != null) e.setAttribute(x, v);
+    else if (v !== false && v != null) e.setAttribute(x, x === 'href' ? fixHref(v) : v);
   }
   k.flat(9).forEach(c => { if (c == null || c === false) return; e.append(c.nodeType ? c : document.createTextNode(String(c))); });
   return e;
@@ -48,7 +52,7 @@ const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSO
 const DEF = { split: true, certs: {}, name: '', courses: [], prog: {}, podcasts: true, follow: [], liked: [], later: [], hist: [], lists: [], notes: {}, meta: {}, bad: [], prof: { ch: {}, cat: {}, kw: {} }, theme: 'auto' };
 const S = Object.assign(structuredClone(DEF), LS.get('tt2', {}));
 const save = () => LS.set('tt2', S);
-const remember = v => { S.meta[v.id] = { id: v.id, title: v.title, channel: v.channel, category: v.category, seconds: v.seconds, views: v.views, publishedAt: v.publishedAt, ext: v.ext }; };
+const remember = v => { S.meta[v.id] = { id: v.id, title: v.title, channel: v.channel, category: v.category, seconds: v.seconds, views: v.views, publishedAt: v.publishedAt, ext: v.ext, blocked: v.blocked }; };
 
 /* ---------- formatting ---------- */
 const fmtDur = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
@@ -157,7 +161,7 @@ const NAV = [['home', 'Home', 'home'], ['longs', 'Longs', 'film'], ['courses', '
              ['later', 'Watch later', 'clock'], ['cats', 'Categories', 'grid'], ['channels', 'Channels', 'user'], ['playlists', 'Playlists', 'list'], ['notes', 'Notes', 'pen'], ['settings', 'Settings', 'sliders']];
 
 function route() {
-  const stay = ['watch', 'learn'].includes((location.hash.slice(1).split('?')[0] || '/home').split('/').filter(Boolean)[0]);   // next lesson: keep full screen / landscape
+  const stay = ['watch', 'learn'].includes(location.pathname.split('/').filter(Boolean)[0]);   // next lesson: keep full screen / landscape
   const panel = document.body.dataset.panel || '';
   if (EXITFS) EXITFS(stay);
   if (!stay) { FSWANT = false; if (LANDEXIT) LANDEXIT(); }
@@ -166,11 +170,13 @@ function route() {
   document.body.dataset.panel = stay ? panel : ''; RAILREFRESH = null;
   if (FLUSH) { FLUSH(); FLUSH = null; }
   stopPlayer();
-  const [path, qs] = location.hash.slice(1).split('?'), parts = (path || '/home').split('/').filter(Boolean);
+  const qs = location.search.slice(1), parts = location.pathname.split('/').filter(Boolean);
   const page = PAGES[parts[0]] ? parts[0] : 'home', arg = decodeURIComponent(parts.slice(1).join('/'));
+  const rm = document.querySelector('meta[name="robots"]');   // only the home page and the lesson pages (served by api/watch.js) belong in search results
+  if (rm && page !== 'watch') rm.setAttribute('content', page === 'home' ? 'index,follow,max-image-preview:large,max-snippet:-1' : 'noindex,follow');
   setTitle(page === 'search' ? 'Search: ' + arg : ['cat', 'channel'].includes(page) ? arg : '');
   const navKey = { cat: 'cats', pl: 'playlists', channel: 'channels', course: 'courses', learn: 'courses', certificate: 'courses', verify: 'courses' }[page] || page;
-  document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === '#/' + navKey ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  document.querySelectorAll('nav a').forEach(a => a.getAttribute('href') === toPath('#/' + navKey) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   main.replaceChildren(); document.body.classList.remove('navopen');
   if (!CAT.length && ['home', 'longs', 'cats', 'cat', 'channels', 'channel', 'search', 'watch'].includes(page)) {
     main.append(msg(loadError || 'Loading lessons…')); return;
@@ -435,7 +441,7 @@ PAGES.pl = id => {
   listPage(L.name, () => L.ids.map(getV).filter(Boolean), { list: id, empty: 'This playlist is empty.', remove: v => { L.ids = L.ids.filter(x => x !== v.id); save(); },
     actions: [L.ids.length ? el('a', { class: 'btn pri', href: `#/watch/${L.ids[0]}?list=${id}` }, 'Play all') : null,
       el('button', { class: 'btn', type: 'button', onclick: () => { const n = prompt('Rename playlist', L.name); if (n && n.trim()) { L.name = n.trim().slice(0, 60); save(); route(); } } }, 'Rename'),
-      el('button', { class: 'btn', type: 'button', onclick: () => { if (confirm(`Delete “${L.name}”?`)) { S.lists = S.lists.filter(x => x !== L); save(); location.hash = '#/playlists'; } } }, 'Delete')] });
+      el('button', { class: 'btn', type: 'button', onclick: () => { if (confirm(`Delete “${L.name}”?`)) { S.lists = S.lists.filter(x => x !== L); save(); navTo('#/playlists'); } } }, 'Delete')] });
 };
 function playlistDlg(v) {
   remember(v);
@@ -640,10 +646,19 @@ function goFS() {
   try { if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(() => {}); } catch (e) {}   // typing Esc in the notes should not leave full screen (hold Esc to leave)
 }
 document.addEventListener('click', () => { if (FSWANT && !LANDON && !document.fullscreenElement) goFS(); });
+// Videos whose owner does not allow them to play outside YouTube: a card with a big "Watch on YouTube" button takes the player's place
+function blockedCard(id, t, extra, why) {
+  const url = `https://www.youtube.com/watch?v=${id}${t ? '&t=' + t + 's' : ''}`;
+  return el('div', { class: 'blockedcard', style: `background-image:url(https://i.ytimg.com/vi/${id}/hqdefault.jpg)` },
+    el('b', null, 'Watch this one on YouTube'),
+    el('p', null, why || "The owner of this video doesn't allow it to play outside YouTube. Open it in a new tab, watch it there, then come back here to write your notes."),
+    el('div', { class: 'row' }, el('a', { class: 'btn pri', href: url, target: '_blank', rel: 'noopener' }, 'Watch on YouTube ↗'), ...(extra || [])));
+}
+const blockedWhy = code => code === 100 ? 'YouTube says this video was removed or is private.' : code === 2 || code === 5 ? 'YouTube could not play this video here.' : undefined;
 function layoutBox(vcol, notes, title = '', railItems = []) {   // box = (full-screen top bar) + video column + notes panel + sideways-phone button rail
   const exitB = el('button', { class: 'btn pri', type: 'button' }, 'Exit full screen');
   const bar = el('div', { class: 'fsbar', hidden: '' }, el('span', { class: 'fst' }, title), exitB);
-  const rb = railBox([{ ico: 'left', label: 'Back', fn: () => { if (history.length > 1) history.back(); else location.hash = '#/home'; } }, ...railItems,
+  const rb = railBox([{ ico: 'left', label: 'Back', fn: () => { if (history.length > 1) history.back(); else navTo('#/home'); } }, ...railItems,
     { ico: 'rot', label: 'Exit landscape', fn: () => leaveLand(), show: () => LANDON },
     { ico: 'pen', label: 'Notes', fn: () => togglePanel('notes'), on: () => document.body.dataset.panel === 'notes' }]);
   const box = el('div', { class: 'fsbox' }, bar, vcol, notes, rb.rail);
@@ -767,14 +782,14 @@ PAGES.watch = (id, q) => {
     const gone = () => main.replaceChildren(msg('This lesson is no longer in the feed.'), el('a', { class: 'btn', href: '#/home' }, 'Back to home'));
     main.append(msg('Loading lesson…'));
     getJSON('/api/video?v=' + encodeURIComponent(id)).then(d => {
-      if (!d.video || !d.video.embeddable || !location.hash.includes(id)) throw new Error('gone');
+      if (!d.video || !location.pathname.includes(id)) throw new Error('gone');
       d.video.ext = true; remember(d.video); route();
-    }).catch(() => { if (location.hash.includes(id)) gone(); });
+    }).catch(() => { if (location.pathname.includes(id)) gone(); });
     return;
   }
   remember(v); S.hist = [v.id, ...S.hist.filter(x => x !== v.id)].slice(0, 200); bump(v, 1); save(); setTitle(v.title);
   const list = q.get('list'), ids = list ? listIds(list) : null, idx = ids ? ids.indexOf(v.id) : -1;
-  const next = () => { if (ids && idx >= 0 && idx < ids.length - 1) location.hash = `#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}`; };
+  const next = () => { if (ids && idx >= 0 && idx < ids.length - 1) navTo(`#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}`); };
   const startAt = resumeAt(v.id);
   const box = el('div'), err = el('p', { class: 'err', role: 'alert' });
   const likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
@@ -784,12 +799,19 @@ PAGES.watch = (id, q) => {
     laterB.replaceChildren(ico('clock'), w ? 'Saved' : 'Watch later'); laterB.classList.toggle('on', w);
   };
   likeB.onclick = () => { toggle('liked', v, 3); sync(); }; laterB.onclick = () => { toggle('later', v, 2); sync(); }; sync();
-  const blocked = () => {
-    if (!S.bad.includes(v.id)) S.bad.push(v.id); save();
-    err.replaceChildren("The owner doesn't allow this video to play here. ", el('a', { href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener', style: 'text-decoration:underline' }, 'Watch on YouTube'));
-    if (ids && idx < ids.length - 1) setTimeout(next, 2500);
+  const frame = el('div', { class: 'frame' }, box);
+  const nextBtn = ids && idx >= 0 && idx < ids.length - 1 ? [el('a', { class: 'btn', href: `#/watch/${ids[idx + 1]}?list=${encodeURIComponent(list)}` }, 'Next →')] : [];
+  const showBlocked = code => {   // never plays here: swap the player for the "Watch on YouTube" card
+    clearInterval(TICK); TICK = null; POSHOOK = null;
+    try { YTP.destroy(); } catch (e) {} YTP = null;
+    frame.replaceChildren(blockedCard(v.id, 0, nextBtn, blockedWhy(code)));
   };
-  loadYT().then(() => {
+  const blocked = e => {
+    if (!S.bad.includes(v.id)) S.bad.push(v.id);
+    v.blocked = true; remember(v); save(); showBlocked(e && e.data);
+  };
+  if (v.blocked) showBlocked();
+  else loadYT().then(() => {
     if (!box.isConnected) return;
     YTP = new YT.Player(box, { videoId: v.id, host: 'https://www.youtube-nocookie.com', playerVars: { autoplay: 1, rel: 0, playsinline: 1, fs: 0, start: startAt },
       events: { onStateChange: e => { if (e.data === 0) { bump(v, 2); save(); next(); } }, onError: blocked } });
@@ -806,7 +828,7 @@ PAGES.watch = (id, q) => {
     el('button', { class: 'btn', type: 'button', onclick: () => makeCourseHere(v) }, ico('book'), 'Make a course'),
     el('a', { class: 'btn', href: 'https://www.youtube.com/watch?v=' + v.id, target: '_blank', rel: 'noopener' }, 'Open on YouTube'));
   const resumeNote = startAt ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(0); delete POS[v.id]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
-  const vcol = el('div', { class: 'vcol' }, el('div', { class: 'frame' }, box), err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, v.title),
+  const vcol = el('div', { class: 'vcol' }, frame, err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, v.title),
     el('div', { class: 'mut' }, v.ext ? v.channel : el('a', { class: 'cl', href: chanHref(v.channel), style: 'font-weight:600;color:var(--fg)' }, v.channel), ` · ${fmtViews(v.views)} views · ${ago(v)}`), acts);
   const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this lesson' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes'),
     noteBox(v.id, { title: v.title, sub: `${v.channel} · https://www.youtube.com/watch?v=${v.id}` }, { time, seek }));
@@ -840,7 +862,7 @@ PAGES.settings = () => {
     el('div', { class: 'row' }, b('Download backup', () => download('toppertube-backup.json', JSON.stringify({ ...S, pos: POS, study: STUDY }), 'application/json')), b('Restore backup', () => file.click()), file),
     el('h3', null, 'Recommendations'), el('p', { class: 'mut' }, 'The Home page learns from what you watch, like and save. You can start fresh any time.'),
     el('div', { class: 'row' }, b('Reset recommendations', () => { if (confirm('Forget what Toppertube learned about your interests?')) { S.prof = structuredClone(DEF.prof); save(); alert('Done.'); } })),
-    el('h3', null, 'Delete everything'), el('div', { class: 'row' }, b('Delete all my data', () => { if (confirm('Delete likes, history, playlists and notes from this browser?')) { localStorage.removeItem('tt2'); localStorage.removeItem('tt_pos'); localStorage.removeItem('tt_study'); location.hash = '#/home'; location.reload(); } })));
+    el('h3', null, 'Delete everything'), el('div', { class: 'row' }, b('Delete all my data', () => { if (confirm('Delete likes, history, playlists and notes from this browser?')) { localStorage.removeItem('tt2'); localStorage.removeItem('tt_pos'); localStorage.removeItem('tt_study'); history.replaceState(null, '', '/'); location.reload(); } })));
 };
 
 /* ---------- shell ---------- */
@@ -865,9 +887,19 @@ $('#q').addEventListener('input', () => {
     dl.replaceChildren(...out.map(s => el('option', { value: s })));
   }, 120);
 });
-$('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } location.hash = '#/search/' + encodeURIComponent(q); };
+$('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } navTo('#/search/' + encodeURIComponent(q)); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
-addEventListener('hashchange', route);
+addEventListener('popstate', route);
+addEventListener('hashchange', () => { if (location.hash.startsWith('#/')) { history.replaceState(null, '', toPath(location.hash)); route(); } });   // old /#/... links and bookmarks
+// links inside the app change the page without a reload; /about, /categories and /category/... are separate pages and load normally
+document.addEventListener('click', e => {
+  if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target.closest && e.target.closest('a[href]');
+  if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
+  const u = new URL(a.href, location.href);
+  if (u.origin !== location.origin || !PAGES[u.pathname.split('/')[1] || 'home']) return;
+  e.preventDefault(); navTo(u.pathname + u.search);
+});
 // turning a phone sideways: leave the "full screen + notes" mode, the sideways layout (video + button rail) takes over
 const phoneSideways = matchMedia('(orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
 if (phoneSideways.addEventListener) phoneSideways.addEventListener('change', e => {
@@ -886,9 +918,7 @@ function applyFeed(d) {
 }
 async function getJSON(url) { const r = await fetch(url), d = await r.json(); if (!r.ok) throw new Error(d.error || 'Request failed'); return d; }
 (async () => {
-  // /watch/<id> is the crawlable address of a lesson (served by api/watch.js); inside the app the same lesson lives at /#/watch/<id>
-  const wp = /^\/watch\/([\w-]{11})\/?$/.exec(location.pathname);
-  if (wp) history.replaceState(null, '', '/#/watch/' + wp[1] + location.search);
+  if (location.hash.startsWith('#/')) history.replaceState(null, '', toPath(location.hash));   // an old /#/watch/<id> style address becomes /watch/<id>
   applyTheme();
   main.replaceChildren(msg('Loading lessons…'));
   // 1) /feed.json is a plain static file made at deploy time, so the page can show lessons almost instantly
