@@ -120,7 +120,7 @@ ${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(b
 <p>Pick a channel, open any lesson, and write notes next to the video. To follow a topic in order, <a href="/courses">create a course</a> from a playlist or a long video. Finish every lesson to earn a certificate you can share and verify. No account is needed, and your progress is saved in your browser.</p>
 <p class="mut">See also: <a href="/categories">all categories</a> · <a href="/about">about ${NAME}</a></p>`;
     write(`category/${slug(cat)}.html`, page({
-      p: catUrl(cat), title: `${cat} videos & courses | ${NAME}`,
+      p: catUrl(cat), title: `${cat} videos & courses - ${NAME}`,
       desc: `${blurb} ${names.length} trusted channels, free notes and certificates.`.slice(0, 158),
       h1: cat, crumbs: [['Categories', '/categories']], body,
       extraLd: [{ '@type': 'CollectionPage', name: `${cat}: free learning videos`, url: SITE + catUrl(cat), description: blurb, isPartOf: { '@type': 'WebSite', name: NAME, url: SITE + '/' },
@@ -131,7 +131,7 @@ ${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(b
 
   // Categories index
   write('categories.html', page({
-    p: '/categories', title: `All learning categories | ${NAME}`, h1: 'All categories',
+    p: '/categories', title: `All learning categories - ${NAME}`, h1: 'All categories',
     desc: `Browse ${nCat} subjects, from science, maths and programming to exam prep, languages, finance and the arts. ${nCh} trusted YouTube channels, one free place to learn.`.slice(0, 158),
     body: `<h1>All learning categories</h1>
 <p>${NAME} organises ${nCh} trusted educational YouTube channels into ${nCat} subjects. Choose a category to see its channels and start learning.</p>

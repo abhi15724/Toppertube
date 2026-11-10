@@ -53,7 +53,7 @@ function render(id) {
   const [, title, channel, category, publishedAt, seconds, viewCount, text] = r;
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
   const desc = clip(clean.length > 40 ? `${clean} · ${channel} on Toppertube` : `Watch "${title}" from ${channel}: a free ${category} lesson with notes and course tools on Toppertube.`, 158);
-  const pageTitle = clip(`${title} | Toppertube`, 70);
+  const pageTitle = `${clip(title, 60)} - Toppertube`;   // long titles are shortened, the brand always stays at the end
   const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   set(/<title>[^<]*<\/title>/, `<title>${esc(pageTitle)}</title>`);
   set(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`);
