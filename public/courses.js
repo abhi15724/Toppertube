@@ -250,7 +250,6 @@ PAGES.learn = arg => {
     certBanners.forEach(x => { x.d.style.display = full ? '' : 'none'; x.a.textContent = S.certs[cid] ? 'View your certificate →' : 'Get your certificate →'; });
     try { lay.refresh(); } catch (e) {}
   };
-  const sideBanner = mkBanner();
   const doneB = el('button', { class: 'btn', type: 'button' }), likeB = el('button', { class: 'btn', type: 'button' }), laterB = el('button', { class: 'btn', type: 'button' });
   // Moving on to the next lesson: a 3-second heads-up that can be cancelled or skipped; after the last lesson the certificate link shows instead
   const toast = el('div', { class: 'nexttoast', role: 'status', 'aria-live': 'polite', style: 'display:none' });
@@ -265,7 +264,7 @@ PAGES.learn = arg => {
     clearInterval(nextT);
     nextT = setInterval(() => { if (!toast.isConnected) { clearInterval(nextT); return; } if (--n <= 0) go(); else paint(); }, 1000);
   };
-  const outline = () => side.replaceChildren(sideBanner, el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
+  const outline = () => side.replaceChildren(el('h3', null, c.title), bar(pctOf(c)), el('p', { class: 'mut' }, pctOf(c) + '% complete'),
     ...c.modules.map(mm => el('div', null, el('b', { style: 'display:block;margin:10px 0 4px' }, mm.title),
       ...mm.lessons.map(x => el('div', { class: 'lesson' + (x === l ? ' cur' : '') + (p.done[lk(x)] ? ' done' : ''), 'aria-current': x === l ? 'true' : null },
         el('span', null, p.done[lk(x)] ? '✓' : '○'),
@@ -315,7 +314,7 @@ PAGES.learn = arg => {
   const resumeNote = startAt > (l.s || 0) ? el('p', { class: 'mut resume' }, `Resuming from ${fmtDur(startAt)} · `, el('button', { class: 'btn', type: 'button', onclick: () => { seek(l.s || 0); delete POS[pkey]; LS.set('tt_pos', POS); resumeNote.remove(); } }, 'Start over')) : null;
   const vcol = el('div', { class: 'vcol' }, frame, err, ...(resumeNote ? [resumeNote] : []), el('h1', { class: 'vt' }, l.t),
     el('div', { class: 'mut' }, el('a', { class: 'cl', href: '#/course/' + cid }, c.title), ` · ${m ? m.title : ''} · Lesson ${i + 1} of ${ls.length}`), mkBanner(), acts);
-  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, mkBanner(), el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
+  const notes = el('section', { class: 'notes', 'aria-label': 'My notes for this course' }, el('h2', { style: 'font-size:17px;margin-bottom:8px' }, 'My notes for the whole course'),
     noteBox(courseNotes(c), { title: `${c.title} · course notes`, sub: `Course: ${c.title}` }, { time, stampPre: `Lesson ${i + 1} · ` }));
   const rail = [
     { ico: 'menu', label: 'Lessons', fn: () => togglePanel('lessons'), on: () => document.body.dataset.panel === 'lessons' },

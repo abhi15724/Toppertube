@@ -270,9 +270,29 @@ function updText() {
   UPDLINE.textContent = `Lessons updated ${sinceStr(FEEDAT)} · ${CAT.length.toLocaleString()} lessons from ${chs} channels`;
   UPDLINE.title = new Date(FEEDAT).toLocaleString();
 }
+// Home: paste any YouTube link, it opens here (player, notes, likes, playlists) like our own lessons
+function addLinkDlg() {
+  const inp = el('input', { type: 'text', placeholder: 'Paste a YouTube video link', 'aria-label': 'YouTube video link', style: 'flex:1;min-width:200px' });
+  const st = el('p', { class: 'mut', role: 'status' });
+  const go = async () => {
+    const t = inp.value.trim(); if (!t) return;
+    st.textContent = 'Opening…';
+    dlg.close();
+    await openAny(t);
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  dlg.replaceChildren(el('div', null, el('h2', null, 'Add a YouTube video'),
+    el('p', { class: 'mut' }, 'Paste any YouTube link. You can watch it here and write notes, like or save it, and add it to a playlist.'),
+    el('div', { class: 'row', style: 'margin:12px 0' }, inp, el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Open')), st,
+    el('div', { class: 'row', style: 'justify-content:flex-end' }, el('button', { class: 'btn', type: 'button', onclick: () => dlg.close() }, 'Cancel'))));
+  dlg.showModal(); inp.focus();
+}
 PAGES.home = () => {
   UPDLINE = el('p', { class: 'mut', style: 'font-size:13px;margin:2px 0 10px' }); updText(); main.append(UPDLINE);
   main.append(studyWidget());
+  main.append(el('div', { class: 'row', style: 'margin:4px 0 12px' },
+    el('button', { class: 'btn pri', type: 'button', onclick: addLinkDlg }, ico('plus'), 'Add YouTube video link'),
+    el('a', { class: 'btn', href: '#/courses' }, ico('book'), 'Create course')));
   const cont = continueItems();
   if (cont.length) main.append(el('h3', { style: 'margin:6px 0 10px' }, 'Continue watching'), el('div', { class: 'grid', style: 'margin-bottom:8px' }, cont.map(it =>
     card(it.v, { href: it.href, chan: it.chan, frac: it.frac, note: 'Resume at ' + fmtDur(it.t), remove: () => { delete POS[it.key]; LS.set('tt_pos', POS); route(); } }))));

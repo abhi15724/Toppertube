@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/build-feed.js; node scripts/build-seo.js",
+  "buildCommand": "node scripts/build-feed.js; node scripts/build-seo.js; cp public/index.html public/404.html",
   "outputDirectory": "public",
   "functions": {
     "api/*.js": {
@@ -101,7 +101,7 @@
       "destination": "/api/watch?id=:id"
     },
     {
-      "source": "/(home|longs|courses|course|learn|certificate|verify|progress|podcasts|liked|later|history|cats|cat|channels|channel|playlists|pl|notes|settings|search)(/.*)?",
+      "source": "/((?!api/|category/|.*\\..*).+)",
       "destination": "/index.html"
     }
   ]
