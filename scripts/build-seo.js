@@ -15,6 +15,8 @@ const TODAY = new Date().toISOString().slice(0, 10);
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const slug = s => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// People who arrive from a search engine land in the real app instead of this plain page. Crawlers send no referrer, so Google still reads and indexes the page itself.
+const toApp = to => `<script>try{if(/(^|\\.)(google|bing|duckduckgo|yahoo|ecosia|brave|yandex|baidu)\\./i.test(new URL(document.referrer).hostname+'.'))location.replace(${JSON.stringify(to)})}catch(e){}</script>\n`;
 const ld = o => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
 
 // What each category is about, in plain words (no claims about individual channels).
@@ -110,7 +112,7 @@ ${body}
   // Category pages
   for (const [cat, names] of cats) {
     const blurb = BLURB[cat] || `Free ${cat} videos from trusted educational channels.`;
-    const body = `<h1>${esc(cat)}: free learning videos</h1>
+    const body = toApp('/cat/' + encodeURIComponent(cat)) + `<h1>${esc(cat)}: free learning videos</h1>
 <p>${esc(blurb)} ${NAME} brings together ${names.length} YouTube channel${names.length === 1 ? '' : 's'} in this category, so you can learn, take notes and build a course without leaving one place.</p>
 <p><a class="cta" href="/cat/${encodeURIComponent(cat)}">Watch ${esc(cat)} lessons</a></p>
 <h2>Channels in ${esc(cat)}</h2>
@@ -133,7 +135,7 @@ ${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(b
   write('categories.html', page({
     p: '/categories', title: `All learning categories - ${NAME}`, h1: 'All categories',
     desc: `Browse ${nCat} subjects, from science, maths and programming to exam prep, languages, finance and the arts. ${nCh} trusted YouTube channels, one free place to learn.`.slice(0, 158),
-    body: `<h1>All learning categories</h1>
+    body: toApp('/cats') + `<h1>All learning categories</h1>
 <p>${NAME} organises ${nCh} trusted educational YouTube channels into ${nCat} subjects. Choose a category to see its channels and start learning.</p>
 <ul class="cols">${[...cats].map(([c, n]) => `<li><a href="${catUrl(c)}">${esc(c)}</a> <span class="mut">(${n.length} channels)</span></li>`).join('')}</ul>
 <p><a class="cta" href="/">Open ${NAME}</a></p>`
