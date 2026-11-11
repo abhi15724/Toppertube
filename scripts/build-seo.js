@@ -15,8 +15,8 @@ const TODAY = new Date().toISOString().slice(0, 10);
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const slug = s => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-// People who arrive from a search engine land in the real app instead of this plain page. Crawlers send no referrer, so Google still reads and indexes the page itself.
-const toApp = to => `<script>try{if(/(^|\\.)(google|bing|duckduckgo|yahoo|ecosia|brave|yandex|baidu)\\./i.test(new URL(document.referrer).hostname+'.'))location.replace(${JSON.stringify(to)})}catch(e){}</script>\n`;
+// Real visitors (any browser, any way of arriving) go straight into the app instead of this plain page. Only crawlers and speed/SEO checkers, which identify themselves in the user agent, get to read the page itself.
+const toApp = to => `<script>try{if(!/bot|crawl|spider|slurp|lighthouse|inspect|preview|facebookexternalhit/i.test(navigator.userAgent))location.replace(${JSON.stringify(to)})}catch(e){}</script>\n`;
 const ld = o => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
 
 // What each category is about, in plain words (no claims about individual channels).
@@ -65,17 +65,56 @@ try {
   try { const j = JSON.parse(fs.readFileSync(path.join(root, 'lib', 'videos.index.json'), 'utf8')); vids = j.v; vidsUpdated = String(j.updatedAt || TODAY).slice(0, 10); } catch (e) {}
   const byCat = new Map(); for (const r of vids) { if (!byCat.has(r[3])) byCat.set(r[3], []); byCat.get(r[3]).push(r); }
   const catUrl = c => `/category/${slug(c)}`;
-  const css = `*{box-sizing:border-box}body{margin:0;font:16px/1.6 system-ui,"Segoe UI",Roboto,sans-serif;background:#fdfdfb;color:#0f0f0f}
-a{color:#b3162a}header,footer{padding:14px 20px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}header{border-bottom:1px solid #dcdcd6}
-header .logo{font-weight:800;font-size:20px;color:inherit;text-decoration:none}header .logo b{color:#d62839}header nav{display:flex;gap:16px;flex-wrap:wrap}
-main{max-width:860px;margin:0 auto;padding:24px 20px 48px}h1{font-size:30px;line-height:1.2;margin:.2em 0 .4em}h2{font-size:21px;margin:1.6em 0 .4em}
-.cta{display:inline-block;background:#d62839;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:600}
-ul.cols{columns:2;column-gap:28px;padding-left:20px}ul.cols li{break-inside:avoid;margin:3px 0}.mut{color:#606060}footer{border-top:1px solid #dcdcd6;color:#606060;font-size:14px}
-@media(max-width:560px){ul.cols{columns:1}h1{font-size:25px}}
-@media(prefers-color-scheme:dark){body{background:#0f1115;color:#f1f1f1}a{color:#ff7a88}header,footer{border-color:#2c313b}.mut,footer{color:#a8abb3}}`;
+  const css = `:root{--bg:#fafaf8;--card:#fff;--ink:#14141a;--mut:#5d6068;--line:#e7e7e1;--brand:#d62839;--link:#b3162a;--tint:rgba(214,40,57,.08);--shadow:0 1px 2px rgba(20,20,26,.05),0 8px 24px rgba(20,20,26,.06);color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1014;--card:#171a21;--ink:#f3f3f5;--mut:#a4a8b2;--line:#272b35;--link:#ff8a97;--tint:rgba(255,107,122,.10);--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;background:var(--bg);color:var(--ink);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+a{color:var(--link);text-decoration-thickness:1px;text-underline-offset:3px}a:focus-visible,summary:focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:8px}
+img{max-width:100%;height:auto}
+.hd{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.hd-in{max-width:1120px;margin:0 auto;padding:10px clamp(14px,3vw,28px);display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.logo b{color:var(--brand)}
+.nav{display:flex;gap:4px;margin-left:auto;align-items:center}.nav a{color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;padding:8px 14px;border-radius:999px;transition:background .15s}
+.nav a:hover{background:var(--tint)}.nav a[aria-current=page]{background:var(--tint);color:var(--link)}.nav a.open{background:var(--brand);color:#fff;margin-left:6px}.nav a.open:hover{filter:brightness(1.08)}
+@media(max-width:620px){.nav{order:3;width:100%;margin-left:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.nav::-webkit-scrollbar{display:none}.nav a{white-space:nowrap;padding:8px 11px;font-size:14px}.nav a.open{margin-left:auto}}
+main{max-width:1120px;margin:0 auto;padding:clamp(16px,3vw,32px) clamp(14px,3vw,28px) 56px}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:24px;padding:clamp(24px,5vw,56px);background:radial-gradient(900px 300px at 100% 0,var(--tint),transparent 70%),var(--card);box-shadow:var(--shadow)}
+.eyebrow{display:inline-block;margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--link)}
+h1{font-size:clamp(1.8rem,1.1rem + 3.2vw,3rem);line-height:1.12;letter-spacing:-.02em;margin:0 0 .45em}
+h2{font-size:clamp(1.3rem,1rem + 1vw,1.75rem);letter-spacing:-.01em;margin:2.2em 0 .7em}h3{font-size:1.05rem;margin:0 0 .35em}
+.lead{font-size:clamp(1.02rem,.95rem + .35vw,1.2rem);color:var(--mut);max-width:62ch;margin:0 0 1.2em}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.cta,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;border-radius:999px;font-weight:700;text-decoration:none;transition:transform .15s,filter .15s}
+.cta{background:var(--brand);color:#fff;box-shadow:0 6px 18px rgba(214,40,57,.28)}.cta:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.ghost{border:1px solid var(--line);color:var(--ink);background:var(--card)}.ghost:hover{border-color:var(--brand);color:var(--link)}
+.stats{display:flex;gap:10px 28px;flex-wrap:wrap;margin-top:24px;color:var(--mut);font-size:15px}.stats b{display:block;font-size:1.6rem;line-height:1.1;color:var(--ink)}
+.grid{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.card{display:flex;gap:14px;align-items:center;height:100%;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);text-decoration:none;transition:transform .15s,box-shadow .15s,border-color .15s}
+a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--brand) 45%,var(--line))}
+.av{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,hsl(var(--h) 78% 52%),hsl(calc(var(--h) + 40) 78% 42%))}
+.card b{display:block;line-height:1.3}.card small,.mut{color:var(--mut)}.card small{display:block;font-size:13.5px;line-height:1.4}
+.tile{align-items:flex-start}.tile .av{width:48px;height:48px}
+.vid{display:block;padding:0;overflow:hidden;align-items:stretch;flex-direction:column;gap:0}.vid img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--line)}
+.vid span{display:block;padding:12px 14px 14px}.vid b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px}.vid small{margin-top:4px}
+.feat{display:block;align-items:flex-start}.feat .ic{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--tint);font-size:22px;margin-bottom:12px}.feat p{margin:0;color:var(--mut);font-size:15px}
+.steps{counter-reset:s}.steps .card{display:block;position:relative;padding-top:22px}.steps .card:before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:16px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;display:grid;place-items:center}
+.steps{gap:22px 14px;margin-top:20px}.steps p{margin:0;color:var(--mut);font-size:15px}
+.faq{display:grid;gap:12px}.faq .card{display:block;padding:18px 20px}.faq p{margin:0;color:var(--mut)}
+.band{margin-top:48px;text-align:center;padding:clamp(24px,5vw,44px);border-radius:24px;background:linear-gradient(135deg,#d62839,#ff6b4a);color:#fff}.band h2{margin:0 0 8px;color:#fff}.band p{margin:0 0 18px;opacity:.92}.band .cta{background:#fff;color:#b3162a;box-shadow:none}
+.crumbs{font-size:14px;color:var(--mut);margin:0 0 14px}.crumbs a{color:var(--mut)}
+.ft{border-top:1px solid var(--line);margin-top:24px;padding:28px clamp(14px,3vw,28px) calc(28px + env(safe-area-inset-bottom));color:var(--mut);font-size:14.5px}
+.ft-in{max-width:1120px;margin:0 auto;display:flex;gap:18px 40px;flex-wrap:wrap;justify-content:space-between}.ft p{margin:0 0 6px;max-width:44ch}.ft nav{display:flex;gap:6px 18px;flex-wrap:wrap}.ft a{color:var(--mut)}.ft a:hover{color:var(--link)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}`;
+
+  const hue = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+  const initials = s => String(s).replace(/&/g, ' ').trim().replace(/[^A-Za-z0-9\s]/g, ' ').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const firstSentence = t => (String(t).split('. ')[0] + '.').replace(/\.\.$/, '.');
 
   function page({ p, title, desc, h1, body, extraLd = [], crumbs = [] }) {
     const url = SITE + p, bc = [['Home', '/'], ...crumbs, [h1, p]];
+    const act = p === '/about' ? 'about' : p.startsWith('/categor') ? 'cats' : '';
+    const cur = k => act === k ? ' aria-current="page"' : '';
     const graph = [{
       '@type': 'BreadcrumbList', itemListElement: bc.map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b[0], item: SITE + b[1] }))
     }, ...extraLd];
@@ -83,7 +122,7 @@ ul.cols{columns:2;column-gap:28px;padding-left:20px}ul.cols li{break-inside:avoi
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
@@ -94,33 +133,40 @@ ul.cols{columns:2;column-gap:28px;padding-left:20px}ul.cols li{break-inside:avoi
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${SITE}/og-image.png">
 <meta name="theme-color" content="#d62839">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/favicon.png"><link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://i.ytimg.com">
 <style>${css}</style>
 ${ld({ '@context': 'https://schema.org', '@graph': graph })}
 </head>
 <body>
-<header><a class="logo" href="/">Topper<b>Tube</b></a><nav aria-label="Main"><a href="/categories">Categories</a><a href="/about">About</a><a href="/courses">Courses</a></nav></header>
+<header class="hd"><div class="hd-in"><a class="logo" href="/">Topper<b>Tube</b></a><nav class="nav" aria-label="Main"><a href="/categories"${cur('cats')}>Categories</a><a href="/about"${cur('about')}>About</a><a href="/courses">Courses</a><a class="open" href="/">Open app</a></nav></div></header>
 <main>
 ${body}
 </main>
-<footer><span>${NAME}: free learning videos, courses, notes and certificates.</span><a href="/about">About</a><a href="/categories">All categories</a><span>Videos belong to their creators and play from YouTube.</span></footer>
+<footer class="ft"><div class="ft-in"><div><p><b>${NAME}</b>: free learning videos, courses, notes and certificates.</p><p>Videos belong to their creators and play from YouTube.</p></div><nav aria-label="Footer"><a href="/">Home</a><a href="/categories">All categories</a><a href="/about">About</a><a href="/courses">Courses</a></nav></div></footer>
 </body>
 </html>
 `;
   }
   const write = (rel, text) => { const f = path.join(pub, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
   const urls = [['/', '1.0'], ['/categories', '0.8'], ['/about', '0.5']];
+  const steps = `<ol class="grid steps" style="list-style:none;padding:0"><li class="card"><div><h3>Pick a lesson</h3><p>Choose a channel or lesson from any subject. No account is needed.</p></div></li><li class="card"><div><h3>Watch and take notes</h3><p>Write notes beside the video, then download them as text, Markdown or PDF.</p></div></li><li class="card"><div><h3>Finish and get certified</h3><p>Complete every lesson in a course to earn a certificate you can share and verify.</p></div></li></ol>`;
 
   // Category pages
   for (const [cat, names] of cats) {
     const blurb = BLURB[cat] || `Free ${cat} videos from trusted educational channels.`;
-    const body = toApp('/cat/' + encodeURIComponent(cat)) + `<h1>${esc(cat)}: free learning videos</h1>
-<p>${esc(blurb)} ${NAME} brings together ${names.length} YouTube channel${names.length === 1 ? '' : 's'} in this category, so you can learn, take notes and build a course without leaving one place.</p>
-<p><a class="cta" href="/cat/${encodeURIComponent(cat)}">Watch ${esc(cat)} lessons</a></p>
+    const lessons = byCat.get(cat) || [];
+    const body = toApp('/cat/' + encodeURIComponent(cat)) + `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/categories">Categories</a> / ${esc(cat)}</nav>
+<section class="hero"><p class="eyebrow">Category</p><h1>${esc(cat)}: free learning videos</h1>
+<p class="lead">${esc(blurb)} ${NAME} brings together ${names.length} YouTube channel${names.length === 1 ? '' : 's'} in this category, so you can learn, take notes and build a course without leaving one place.</p>
+<div class="actions"><a class="cta" href="/cat/${encodeURIComponent(cat)}">Watch ${esc(cat)} lessons</a><a class="ghost" href="/categories">All categories</a></div>
+<div class="stats"><span><b>${names.length}</b>channel${names.length === 1 ? '' : 's'}</span>${lessons.length ? `<span><b>${lessons.length.toLocaleString('en')}</b>lessons</span>` : ''}<span><b>Free</b>no sign-up</span></div></section>
 <h2>Channels in ${esc(cat)}</h2>
-<ul class="cols">${names.map(n => `<li><a href="/channel/${encodeURIComponent(n)}">${esc(n)}</a></li>`).join('')}</ul>
-${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(byCat.get(cat) || []).slice(0, 30).map(r => `<li><a href="/watch/${r[0]}">${esc(r[1])}</a> <span class="mut">${esc(r[2])}</span></li>`).join('')}</ul>` : ''}
+<ul class="grid">${names.map(n => `<li><a class="card" style="--h:${hue(n)}" href="/channel/${encodeURIComponent(n)}"><span class="av" aria-hidden="true">${esc(initials(n))}</span><b>${esc(n)}</b></a></li>`).join('')}</ul>
+${lessons.length ? `<h2>Latest ${esc(cat)} lessons</h2>
+<ul class="grid wide">${lessons.slice(0, 30).map(r => `<li><a class="card vid" href="/watch/${r[0]}"><img loading="lazy" decoding="async" width="320" height="180" alt="" src="https://i.ytimg.com/vi/${r[0]}/mqdefault.jpg"><span><b>${esc(r[1])}</b><small>${esc(r[2])}</small></span></a></li>`).join('')}</ul>` : ''}
 <h2>How to learn with ${NAME}</h2>
-<p>Pick a channel, open any lesson, and write notes next to the video. To follow a topic in order, <a href="/courses">create a course</a> from a playlist or a long video. Finish every lesson to earn a certificate you can share and verify. No account is needed, and your progress is saved in your browser.</p>
+${steps}
+<p class="mut" style="margin-top:22px">Want to follow a topic in order? <a href="/courses">Create a course</a> from a playlist or a long video. Your progress is saved in your browser.</p>
 <p class="mut">See also: <a href="/categories">all categories</a> · <a href="/about">about ${NAME}</a></p>`;
     write(`category/${slug(cat)}.html`, page({
       p: catUrl(cat), title: `${cat} videos & courses - ${NAME}`,
@@ -136,26 +182,30 @@ ${(byCat.get(cat) || []).length ? `<h2>Latest ${esc(cat)} lessons</h2>\n<ul>${(b
   write('categories.html', page({
     p: '/categories', title: `All learning categories - ${NAME}`, h1: 'All categories',
     desc: `Browse ${nCat} subjects, from science, maths and programming to exam prep, languages, finance and the arts. ${nCh} trusted YouTube channels, one free place to learn.`.slice(0, 158),
-    body: toApp('/cats') + `<h1>All learning categories</h1>
-<p>${NAME} organises ${nCh} trusted educational YouTube channels into ${nCat} subjects. Choose a category to see its channels and start learning.</p>
-<ul class="cols">${[...cats].map(([c, n]) => `<li><a href="${catUrl(c)}">${esc(c)}</a> <span class="mut">(${n.length} channels)</span></li>`).join('')}</ul>
-<p><a class="cta" href="/">Open ${NAME}</a></p>`
+    body: toApp('/cats') + `<section class="hero"><p class="eyebrow">Browse</p><h1>All learning categories</h1>
+<p class="lead">${NAME} organises ${nCh} trusted educational YouTube channels into ${nCat} subjects. Choose a category to see its channels and start learning.</p>
+<div class="actions"><a class="cta" href="/">Open ${NAME}</a><a class="ghost" href="/about">About ${NAME}</a></div></section>
+<h2>Choose a subject</h2>
+<ul class="grid wide">${[...cats].map(([c, n]) => `<li><a class="card tile" style="--h:${hue(c)}" href="${catUrl(c)}"><span class="av" aria-hidden="true">${esc(initials(c))}</span><span><b>${esc(c)}</b><small>${esc(firstSentence(BLURB[c] || `Free ${c} videos.`))}</small><small>${n.length} channel${n.length === 1 ? '' : 's'}</small></span></a></li>`).join('')}</ul>`
   }));
 
   // About + FAQ (the FAQPage markup repeats exactly what is visible on the page)
   write('about.html', page({
     p: '/about', title: `About ${NAME}: free learning videos, courses and certificates`.slice(0, 70), h1: `About ${NAME}`,
     desc: `${NAME} is a free place to learn from trusted YouTube channels: build courses, take notes, track progress and earn verifiable certificates, with no sign-up.`.slice(0, 158),
-    body: `<h1>About ${NAME}</h1>
-<p>${NAME} is a free learning website. It collects educational videos from ${nCh} trusted YouTube channels across ${nCat} subjects and adds the tools that turn watching into learning: courses with progress, notes beside the video, a study timer, playlists and certificates.</p>
+    body: `<section class="hero"><p class="eyebrow">About</p><h1>About ${NAME}</h1>
+<p class="lead">${NAME} is a free learning website. It collects educational videos from ${nCh} trusted YouTube channels across ${nCat} subjects and adds the tools that turn watching into learning: courses with progress, notes beside the video, a study timer, playlists and certificates.</p>
+<div class="actions"><a class="cta" href="/">Start learning</a><a class="ghost" href="/categories">Browse categories</a></div>
+<div class="stats"><span><b>${nCh}</b>channels</span><span><b>${nCat}</b>subjects</span><span><b>Free</b>no sign-up</span></div></section>
 <h2>What you can do</h2>
-<ul><li><b>Browse by subject</b> in <a href="/categories">${nCat} categories</a>, from science and maths to programming, exam preparation and languages.</li>
-<li><b>Build courses</b> from a YouTube playlist, a long video with chapters, or your own list of lessons, and watch them in order with a progress bar.</li>
-<li><b>Take notes</b> while you watch, then download them as text, Markdown or PDF, or upload them later to carry on.</li>
-<li><b>Earn certificates</b> when you complete a course. Each one has a code that can be checked on the verify page.</li></ul>
+<ul class="grid wide" style="list-style:none;padding:0">
+<li class="card feat"><div class="ic" aria-hidden="true">📚</div><h3>Browse by subject</h3><p>Explore <a href="/categories">${nCat} categories</a>, from science and maths to programming, exam preparation and languages.</p></li>
+<li class="card feat"><div class="ic" aria-hidden="true">🎓</div><h3>Build courses</h3><p>Make a course from a YouTube playlist, a long video with chapters, or your own list of lessons, and watch them in order with a progress bar.</p></li>
+<li class="card feat"><div class="ic" aria-hidden="true">📝</div><h3>Take notes</h3><p>Write notes while you watch, then download them as text, Markdown or PDF, or upload them later to carry on.</p></li>
+<li class="card feat"><div class="ic" aria-hidden="true">🏅</div><h3>Earn certificates</h3><p>Complete a course to earn a certificate. Each one has a code that can be checked on the verify page.</p></li></ul>
 <h2>Frequently asked questions</h2>
-${FAQ.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('\n')}
-<p><a class="cta" href="/">Start learning</a></p>`,
+<div class="faq">${FAQ.map(([q, a]) => `<div class="card"><div><h3>${esc(q)}</h3><p>${esc(a)}</p></div></div>`).join('\n')}</div>
+<section class="band"><h2>Ready to learn?</h2><p>Free videos, notes and certificates in one place.</p><a class="cta" href="/">Open ${NAME}</a></section>`,
     extraLd: [{ '@type': 'FAQPage', mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
       { '@type': 'AboutPage', name: `About ${NAME}`, url: SITE + '/about' }]
   }));

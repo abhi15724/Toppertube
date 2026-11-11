@@ -29,6 +29,7 @@ const IC = {
   menu: '<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
   moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   check: '<polyline points="20 6 9 17 4 12"/>',
   left: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
@@ -909,6 +910,7 @@ $('#q').addEventListener('input', () => {
 });
 $('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } navTo('#/search/' + encodeURIComponent(q)); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
+$('#nav').append(el('a', { href: '/about' }, ico('info'), 'About Toppertube'));   // the plain about page (public/about.html) is a normal page, not part of the app
 addEventListener('popstate', route);
 addEventListener('hashchange', () => { if (location.hash.startsWith('#/')) { history.replaceState(null, '', toPath(location.hash)); route(); } });   // old /#/... links and bookmarks
 // links inside the app change the page without a reload; /about, /categories and /category/... are separate pages and load normally
