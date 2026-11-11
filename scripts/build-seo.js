@@ -24,6 +24,7 @@ const BLURB = {
   'Science & Maths': 'Physics, chemistry, mathematics and general science explained clearly, from school basics to university-level ideas.',
   'School (India)': 'Class-wise lessons for Indian school students, covering the NCERT-style syllabus in English and Hindi.',
   'Exam Prep': 'Preparation videos for competitive exams such as UPSC, SSC, banking, GATE, JEE and NEET, plus English and aptitude practice.',
+  'AI': 'Artificial intelligence, machine learning, large language models, AI agents and prompt engineering, from beginner explainers to research talks and hands-on tutorials.',
   'Programming & Tech': 'Learn programming, web development, data structures, AI, cloud and cybersecurity from free tutorials and university lectures.',
   'History & GK': 'History, geography, current affairs and general knowledge, from world history documentaries to quick explainers.',
   'Business & Finance': 'Business, economics, startups and money, taught through case studies, lectures and plain-language explainers.',

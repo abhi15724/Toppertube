@@ -133,7 +133,7 @@
  },
  {
   "name": "Krish Naik",
-  "category": "Programming & Tech",
+  "category": "AI",
   "handle": "krishnaik06"
  },
  {
@@ -204,7 +204,8 @@
  },
  {
   "name": "StudyIQ",
-  "category": "History & GK"
+  "category": "History & GK",
+  "handle": "StudyIQEducationLtd"
  },
  {
   "name": "Praveen Mohan",
@@ -294,19 +295,19 @@
  },
  {
   "name": "Two Minute Papers",
-  "category": "Programming & Tech"
+  "category": "AI"
  },
  {
   "name": "Andrej Karpathy",
-  "category": "Programming & Tech"
+  "category": "AI"
  },
  {
   "name": "DeepLearningAI",
-  "category": "Programming & Tech"
+  "category": "AI"
  },
  {
   "name": "sentdex",
-  "category": "Programming & Tech"
+  "category": "AI"
  },
  {
   "name": "Corey Schafer",
@@ -331,12 +332,12 @@
  },
  {
   "name": "AI Explained",
-  "category": "Programming & Tech",
+  "category": "AI",
   "handle": "aiexplained-official"
  },
  {
   "name": "Yannic Kilcher",
-  "category": "Programming & Tech"
+  "category": "AI"
  },
  {
   "name": "RealLifeLore",
@@ -1110,7 +1111,7 @@
  },
  {
   "name": "AI Engineer",
-  "category": "Programming & Tech",
+  "category": "AI",
   "handle": "aiDotEngineer"
  },
  {
@@ -1125,12 +1126,12 @@
  },
  {
   "name": "Anthropic",
-  "category": "Programming & Tech",
+  "category": "AI",
   "handle": "anthropic-ai"
  },
  {
   "name": "Claude",
-  "category": "Programming & Tech",
+  "category": "AI",
   "handle": "claude"
  },
  {
@@ -1142,5 +1143,132 @@
   "name": "Stanford Engineering",
   "category": "Engineering",
   "handle": "stanfordengineering"
+ },
+ {
+  "name": "Gaurav Thakur",
+  "id": "UCRgMIwmmh1-2k5HeTQ2cdkQ",
+  "handle": "gauravthakur-gsf",
+  "category": "History & GK"
+ },
+ {
+  "name": "Sangam Talks",
+  "handle": "sangamtalks",
+  "category": "History & GK"
+ },
+ {
+  "name": "Hyper Quest",
+  "id": "UC8HRYUBXTHv4mJ67Y5FitSg",
+  "handle": "hyperquest",
+  "category": "History & GK"
+ },
+ {
+  "name": "DustyThrones",
+  "handle": "DustyThrones",
+  "category": "History & GK"
+ },
+ {
+  "name": "OpenAI",
+  "handle": "openai",
+  "category": "AI"
+ },
+ {
+  "name": "Google DeepMind",
+  "handle": "googledeepmind",
+  "category": "AI"
+ },
+ {
+  "name": "Hugging Face",
+  "handle": "huggingface",
+  "category": "AI"
+ },
+ {
+  "name": "LangChain",
+  "handle": "langchain",
+  "category": "AI"
+ },
+ {
+  "name": "Microsoft Research",
+  "handle": "MicrosoftResearch",
+  "category": "AI"
+ },
+ {
+  "name": "StatQuest with Josh Starmer",
+  "handle": "statquest",
+  "category": "AI"
+ },
+ {
+  "name": "Machine Learning Street Talk",
+  "handle": "MachineLearningStreetTalk",
+  "category": "AI"
+ },
+ {
+  "name": "Matt Wolfe",
+  "handle": "mreflow",
+  "category": "AI"
+ },
+ {
+  "name": "Matthew Berman",
+  "handle": "matthew_berman",
+  "category": "AI"
+ },
+ {
+  "name": "Wes Roth",
+  "handle": "WesRoth",
+  "category": "AI"
+ },
+ {
+  "name": "Sam Witteveen",
+  "handle": "samwitteveen",
+  "category": "AI"
+ },
+ {
+  "name": "Dwarkesh Patel",
+  "handle": "DwarkeshPatel",
+  "category": "AI"
+ },
+ {
+  "name": "AI Jason",
+  "handle": "AIJasonZ",
+  "category": "AI"
+ },
+ {
+  "name": "All About AI",
+  "handle": "AllAboutAI",
+  "category": "AI"
+ },
+ {
+  "name": "The AI Advantage",
+  "handle": "aiadvantage",
+  "category": "AI"
+ },
+ {
+  "name": "Cole Medin",
+  "handle": "ColeMedin",
+  "category": "AI"
+ },
+ {
+  "name": "Nick Saraev",
+  "handle": "nicksaraev",
+  "category": "AI"
+ },
+ {
+  "name": "bycloud",
+  "handle": "bycloudAI",
+  "category": "AI"
+ },
+ {
+  "name": "codebasics",
+  "handle": "codebasics",
+  "category": "AI"
+ },
+ {
+  "name": "Mervin Praison",
+  "handle": "MervinPraison",
+  "category": "AI"
+ },
+ {
+  "name": "Lex Fridman",
+  "handle": "lexfridman",
+  "category": "AI"
  }
 ]

@@ -1,18 +1,19 @@
 # Toppertube
 
-> Toppertube is a free learning website that gathers educational videos from 276 trusted YouTube channels in 20 subjects. Learners can build courses from playlists or long videos, take and download notes, track progress and earn certificates that anyone can verify. No account is needed: personal data stays in the learner's own browser. Videos are hosted by YouTube and belong to their creators.
+> Toppertube is a free learning website that gathers educational videos from 301 trusted YouTube channels in 21 subjects. Learners can build courses from playlists or long videos, take and download notes, track progress and earn certificates that anyone can verify. No account is needed: personal data stays in the learner's own browser. Videos are hosted by YouTube and belong to their creators.
 
 ## Key pages
 - [Home](https://www.toppertube.online/): browse lessons and start learning
-- [All categories](https://www.toppertube.online/categories): 20 subjects with their channels
+- [All categories](https://www.toppertube.online/categories): 21 subjects with their channels
 - [About and FAQ](https://www.toppertube.online/about): what Toppertube is, how courses, notes and certificates work
 
 ## Categories
 - [Science & Maths](https://www.toppertube.online/category/science-and-maths): Physics, chemistry, mathematics and general science explained clearly, from school basics to university-level ideas. 38 channels.
 - [School (India)](https://www.toppertube.online/category/school-india): Class-wise lessons for Indian school students, covering the NCERT-style syllabus in English and Hindi. 11 channels.
 - [Exam Prep](https://www.toppertube.online/category/exam-prep): Preparation videos for competitive exams such as UPSC, SSC, banking, GATE, JEE and NEET, plus English and aptitude practice. 20 channels.
-- [Programming & Tech](https://www.toppertube.online/category/programming-and-tech): Learn programming, web development, data structures, AI, cloud and cybersecurity from free tutorials and university lectures. 52 channels.
-- [History & GK](https://www.toppertube.online/category/history-and-gk): History, geography, current affairs and general knowledge, from world history documentaries to quick explainers. 25 channels.
+- [Programming & Tech](https://www.toppertube.online/category/programming-and-tech): Learn programming, web development, data structures, AI, cloud and cybersecurity from free tutorials and university lectures. 42 channels.
+- [AI](https://www.toppertube.online/category/ai): Artificial intelligence, machine learning, large language models, AI agents and prompt engineering, from beginner explainers to research talks and hands-on tutorials. 31 channels.
+- [History & GK](https://www.toppertube.online/category/history-and-gk): History, geography, current affairs and general knowledge, from world history documentaries to quick explainers. 29 channels.
 - [Business & Finance](https://www.toppertube.online/category/business-and-finance): Business, economics, startups and money, taught through case studies, lectures and plain-language explainers. 14 channels.
 - [Creative & Design](https://www.toppertube.online/category/creative-and-design): Filmmaking, video editing, 3D, graphic design and photography tutorials for people who want to make things. 21 channels.
 - [English & Languages](https://www.toppertube.online/category/english-and-languages): Spoken English, grammar, pronunciation and other languages, taught by experienced language teachers. 9 channels.
