@@ -117,7 +117,7 @@ a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:co
     const cur = k => act === k ? ' aria-current="page"' : '';
     const graph = [{
       '@type': 'BreadcrumbList', itemListElement: bc.map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b[0], item: SITE + b[1] }))
-    }, ...extraLd];
+    }, { '@type': 'Organization', '@id': SITE + '/#org', name: NAME, url: SITE + '/', logo: { '@type': 'ImageObject', url: SITE + '/favicon-512.png', width: 512, height: 512 } }, ...extraLd];
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -224,6 +224,8 @@ ${steps}
   let html = fs.readFileSync(htmlFile, 'utf8');
   if (/<!--seo:start-->[\s\S]*<!--seo:end-->/.test(html)) html = html.replace(/<!--seo:start-->[\s\S]*<!--seo:end-->/, () => block);
   else html = html.replace(/(<main id="main"[^>]*>)(<\/main>)/, (m, a, b) => a + '\n' + block + '\n' + b);
+  html = html.replace(/\d+\+ trusted YouTube/g, nRound + '+ trusted YouTube');   // title, description, share tags and structured data always show the true channel count
+  if (!html.includes('SearchAction')) html = html.replace('"inLanguage": "en", "publisher": {"@id": "' + SITE + '/#org"}}', '"inLanguage": "en", "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": "' + SITE + '/search/{search_term_string}"}, "query-input": "required name=search_term_string"}, "publisher": {"@id": "' + SITE + '/#org"}}');
   fs.writeFileSync(htmlFile, html);
 
   // sitemap.xml and llms.txt

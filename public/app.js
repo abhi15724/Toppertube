@@ -426,22 +426,33 @@ PAGES.search = arg => {
   const qw = wordsOf(arg).filter(w => !GENERIC.has(w)), note = v => snippet(v.d, qw.length ? qw : wordsOf(arg));   // why a result matched
   listPage(`Results for “${arg}”`, get, { note, empty: 'No lessons in our channels match this search.' });
   const box = el('div'), st = el('span', { class: 'mut', role: 'status' });
-  const btn = el('button', { class: 'btn pri', type: 'button', onclick: go }, 'Search more on YouTube');
+  const btn = el('button', { class: 'btn pri', type: 'button' }, 'Search more on YouTube');
   main.append(el('div', { class: 'row', style: 'margin-top:24px' }, btn, st), box);
-  async function go() {
+  const ytLink = el('a', { class: 'btn', href: 'https://www.youtube.com/results?search_query=' + encodeURIComponent(ytQuery(arg)), target: '_blank', rel: 'noopener' }, 'Open this search on YouTube ↗');
+  btn.after(ytLink);
+  async function go(again) {
     btn.disabled = true; st.className = 'mut'; st.textContent = 'Finding more videos on YouTube…';
     const q = ytQuery(arg);
     try {
       let d = YTC.get(q);
-      if (!d) { const r = await fetch('/api/search?q=' + encodeURIComponent(q)); d = await r.json(); if (!r.ok) throw new Error(d.error || 'Request failed'); YTC.set(q, d); }
+      if (!d) {
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);
+        let r; try { r = await fetch('/api/search?q=' + encodeURIComponent(q), { signal: ctl.signal }); } finally { clearTimeout(tm); }
+        d = await r.json().catch(() => ({})); if (!r.ok || !Array.isArray(d.items)) { const e = new Error(d.error || 'Could not search YouTube right now.'); e.status = r.status; throw e; }
+        YTC.set(q, d);
+      }
       const have = new Set(get().map(v => v.id));
       const items = d.items.map(v => V.get(v.id) || v).filter(v => !S.bad.includes(v.id) && !have.has(v.id));
       items.forEach(v => { if (!V.has(v.id)) { v.ext = true; V.set(v.id, v); } });
       box.replaceChildren(el('h3', null, 'More from YouTube'), el('p', { class: 'mut' }, `Videos about “${q}” from across YouTube, including channels outside our trusted list.`),
         items.length ? el('div', { class: 'grid' }, items.map(v => card(v, { note: note(v) }))) : msg('Nothing more found.'));
       st.textContent = ''; btn.hidden = true;
-    } catch (e) { st.className = 'err'; st.textContent = e.message; btn.disabled = false; }
+    } catch (e) {
+      if (again !== false && e.status !== 429 && e.status !== 400) { st.textContent = 'Trying again…'; return setTimeout(() => go(false), 1500); }   // one quiet retry for a slow or cold server
+      st.className = 'err'; st.textContent = (e.name === 'AbortError' ? 'The search took too long.' : e.message) + ' You can try again or open this search on YouTube.'; btn.disabled = false; btn.textContent = 'Try again';
+    }
   }
+  btn.onclick = () => go();
   if (total < 8) go();   // too few answers in our own channels: look on YouTube straight away
 };
 
