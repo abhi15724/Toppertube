@@ -39,6 +39,29 @@ async function load() {
 }
 const template = () => TPL, index = () => IDX;
 
+// A video of one of our channels that is not in the lesson list yet (an older upload, say) still gets a proper, indexable page:
+// its facts are fetched once from YouTube (1 quota unit) and the page is cached by the CDN. Videos from other channels stay noindex.
+const nk = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+let CHCAT = null;
+function categoryOf(channel) {
+  if (!CHCAT) {
+    CHCAT = new Map();
+    try { for (const c of require('../channels.json')) CHCAT.set(nk(c.name), c.category); } catch (e) {}
+    try { const r = require('../channels.resolved.json'); for (const [name, v] of Object.entries(r)) if (v && v.title) CHCAT.set(nk(v.title), (require('../channels.json').find(c => c.name === name) || {}).category); } catch (e) {}
+  }
+  return CHCAT.get(nk(channel)) || null;
+}
+async function adopt(id) {
+  if (!process.env.YT_API_KEY || IDX.by.has(id)) return;
+  try {
+    const x = (await require('../lib/catalog').fetchVideos([id])).get(id);
+    if (!x || !x.embeddable || !x.available || x.seconds < 240) return;
+    const category = categoryOf(x.channel); if (!category) return;
+    const text = String(x.description || '').replace(/https?:\/\/\S+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
+    addRows([[id, x.title, x.channel, category, x.publishedAt, x.seconds, x.views, text]]);
+  } catch (e) { console.warn('adopt failed:', e.message); }
+}
+
 function render(id) {
   const ix = index(), r = ix.by.get(id);
   let html = template();
@@ -98,6 +121,7 @@ module.exports = async (req, res) => {
   if (!/^[\w-]{11}$/.test(id)) { res.statusCode = 302; res.setHeader('Location', '/'); return res.end(); }
   try {
     await load();
+    await adopt(id);
     const html = render(id);
     // handy for checking a deploy: curl -I https://www.toppertube.online/watch/<id>
     res.setHeader('X-Watch-Page', IDX.by.has(id) ? 'rendered' : IDX.by.size ? 'unknown-video-noindex' : 'no-lesson-data');

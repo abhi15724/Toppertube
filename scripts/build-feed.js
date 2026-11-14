@@ -17,12 +17,16 @@ try {
 (async () => {
   if (!process.env.YT_API_KEY) { console.log('YT_API_KEY is not set: skipping the feed snapshot (the site will load the feed from /api/feed instead).'); return; }
   try {
-    const { getCatalog, resolvedMap } = require('../lib/catalog');
+    const { getCatalog, resolvedMap, indexExtra } = require('../lib/catalog');
     const cat = await getCatalog();
     fs.writeFileSync(process.env.FEED_OUT || path.join(root, 'public', 'feed.json'), JSON.stringify(cat));
     // compact copy of the lesson facts, read by api/watch.js (a crawlable page per lesson) and scripts/build-seo.js (sitemaps)
+    let extra = [];   // older uploads of the same channels: they get lesson pages and sitemap entries too, but stay out of the home feed
+    try { extra = await indexExtra(cat, new Set(cat.items.map(i => i.id))); } catch (e) { console.warn('Older uploads skipped:', e.message); }
+    const all = [...cat.items, ...extra].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
     fs.writeFileSync(process.env.INDEX_OUT || path.join(root, 'lib', 'videos.index.json'), JSON.stringify({ updatedAt: cat.updatedAt,
-      v: cat.items.map(i => [i.id, i.title, i.channel, i.category, i.publishedAt, i.seconds, i.views, i.d || ''])  }));
+      v: all.map(i => [i.id, i.title, i.channel, i.category, i.publishedAt, i.seconds, i.views, i.d || ''])  }));
+    console.log(`Lesson pages for search engines: ${all.length} (${extra.length} older uploads added).`);
     fs.writeFileSync(process.env.RESOLVED_OUT || path.join(root, 'channels.resolved.json'), JSON.stringify(resolvedMap()));
     console.log(`Feed snapshot written: ${cat.items.length} videos from ${cat.channels.length} channels.`);
     if (cat.skipped.length) console.log(`Channels that could not be matched (${cat.skipped.length}): ${cat.skipped.join(', ')}`);
