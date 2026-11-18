@@ -73,6 +73,7 @@ async function courseFromVideo(input, title) {
   const { video } = parseYT(input);
   if (!video) throw new Error('Paste a YouTube video link.');
   const d = await api('/api/video?v=' + video), v = d.video;
+  if (d.limited || !v.seconds) throw new Error('YouTube\u2019s data service is limited right now, so this video\u2019s length and chapters cannot be read and it cannot be split into lessons. Please try again in a few hours. You can still watch it from the Courses page.');
   ingest(v);
   let lessons, note;
   if (d.chapters.length >= 3) {
