@@ -105,10 +105,13 @@ async function courseFromVideo(input, title) {
   if (d.chapters.length >= 3) {
     lessons = d.chapters.map((c, i) => { const e = i + 1 < d.chapters.length ? d.chapters[i + 1].s : v.seconds; return { v: v.id, t: c.t, s: c.s, e, d: e - c.s }; });
     note = 'Built from the chapters in the video description.';
-  } else if (v.seconds > 1800) {
-    lessons = Array.from({ length: Math.ceil(v.seconds / 1200) }, (_, i) => { const s = i * 1200, e = Math.min(s + 1200, v.seconds); return { v: v.id, t: `Part ${i + 1}`, s, e, d: e - s }; });
-    note = 'This video has no chapters, so it was split into 20-minute parts. Rename them in Edit structure.';
-  } else { lessons = [{ v: v.id, t: v.title, s: 0, d: v.seconds }]; note = 'This is a short video with no chapters, so the course has one lesson.'; }
+  } else if (v.seconds >= 480) {
+    // no chapters: equal parts, sized to the video (about 5 min for short videos, up to 20 min for very long ones), so no tiny last part is left over
+    const m = v.seconds / 60, target = (m <= 30 ? 5 : m <= 60 ? 10 : 20) * 60;
+    const n = Math.max(2, Math.round(v.seconds / target));
+    lessons = Array.from({ length: n }, (_, k) => { const a = Math.round(k * v.seconds / n), b = Math.round((k + 1) * v.seconds / n); return { v: v.id, t: `Part ${k + 1}`, s: a, e: b, d: b - a }; });
+    note = `This video has no chapters, so it was split into ${n} equal parts of about ${Math.round(v.seconds / n / 60)} minutes. Rename them in Edit structure.`;
+  } else { lessons = [{ v: v.id, t: v.title, s: 0, d: v.seconds }]; note = 'This is a very short video (under 8 minutes) with no chapters, so the course has one lesson.'; }
   return mkCourse(title || v.title, lessons, 'video', video, note);
 }
 async function courseFromLinks(text, title) {
