@@ -69,11 +69,37 @@ async function courseFromPlaylist(input, title) {
   const note = (d.truncated ? 'Only the first 300 videos were imported. ' : '') + (d.items.length < d.total ? `${d.total - d.items.length} private or removed videos were skipped.` : '');
   return mkCourse(title || d.title, lessons, 'playlist', list, note.trim());
 }
+// Length of a video from YouTube's own player, loaded invisibly. Resolves to 0 if it cannot be read.
+function probeDuration(id) {
+  return loadYT().then(() => new Promise(res => {
+    const box = document.createElement('div'); box.setAttribute('aria-hidden', 'true');
+    box.style.cssText = 'position:fixed;left:-9999px;top:0;width:220px;height:130px;overflow:hidden';
+    const host = document.createElement('div'); box.append(host); document.body.append(box);
+    let done = false, pl, timer;
+    const fin = n => { if (done) return; done = true; clearInterval(timer); try { pl.destroy(); } catch (e) {} box.remove(); res(n); };
+    pl = new YT.Player(host, { videoId: id, host: 'https://www.youtube-nocookie.com', playerVars: { controls: 0, playsinline: 1, rel: 0 }, events: {
+      onReady: () => {
+        let ticks = 0;
+        timer = setInterval(() => {
+          const d = pl.getDuration && pl.getDuration();
+          if (d > 0) { try { pl.pauseVideo(); } catch (e) {} return fin(Math.round(d)); }
+          if (++ticks === 8) { try { pl.mute(); pl.playVideo(); } catch (e) {} }   // some videos only report their length once they start
+          if (ticks > 40) fin(0);
+        }, 250);
+      },
+      onError: () => fin(0) } });
+    setTimeout(() => fin(0), 15000);
+  })).catch(() => 0);
+}
 async function courseFromVideo(input, title) {
   const { video } = parseYT(input);
   if (!video) throw new Error('Paste a YouTube video link.');
   const d = await api('/api/video?v=' + video), v = d.video;
-  if (d.limited || !v.seconds) throw new Error('YouTube\u2019s data service is limited right now, so this video\u2019s length and chapters cannot be read and it cannot be split into lessons. Please try again in a few hours. You can still watch it from the Courses page.');
+  if (d.limited || !v.seconds) {   // the data service could not give length/chapters: ask YouTube's own player for the length instead (no quota needed), then split into equal parts
+    const secs = await probeDuration(video);
+    if (!secs) throw new Error('We could not read this video\u2019s length just now. Please check your connection and try again in a moment.');
+    v.seconds = secs; d.chapters = [];
+  }
   ingest(v);
   let lessons, note;
   if (d.chapters.length >= 3) {
