@@ -109,8 +109,8 @@ async function courseFromVideo(input, title) {
     // no chapters: equal parts, sized to the video (about 5 min for short videos, up to 20 min for very long ones), so no tiny last part is left over
     const m = v.seconds / 60, target = (m <= 30 ? 5 : m <= 60 ? 10 : 20) * 60;
     const n = Math.max(2, Math.round(v.seconds / target));
-    lessons = Array.from({ length: n }, (_, k) => { const a = Math.round(k * v.seconds / n), b = Math.round((k + 1) * v.seconds / n); return { v: v.id, t: `Part ${k + 1}`, s: a, e: b, d: b - a }; });
-    note = `This video has no chapters, so it was split into ${n} equal parts of about ${Math.round(v.seconds / n / 60)} minutes. Rename them in Edit structure.`;
+    lessons = Array.from({ length: n }, (_, k) => { const a = Math.round(k * v.seconds / n), b = Math.round((k + 1) * v.seconds / n); return { v: v.id, t: `Lesson ${k + 1}`, s: a, e: b, d: b - a }; });
+    note = `This video has no chapters, so it was split into ${n} equal lessons of about ${Math.round(v.seconds / n / 60)} minutes. Rename them in Edit structure.`;
   } else { lessons = [{ v: v.id, t: v.title, s: 0, d: v.seconds }]; note = 'This is a very short video (under 8 minutes) with no chapters, so the course has one lesson.'; }
   return mkCourse(title || v.title, lessons, 'video', video, note);
 }
