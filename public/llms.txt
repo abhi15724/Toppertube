@@ -6,6 +6,9 @@
 - [Home](https://www.toppertube.online/): browse lessons and start learning
 - [All categories](https://www.toppertube.online/categories): 21 subjects with their channels
 - [About and FAQ](https://www.toppertube.online/about): what Toppertube is, how courses, notes and certificates work
+- [Free online courses](https://www.toppertube.online/free-online-courses): how free courses and certificates work
+- [Free education](https://www.toppertube.online/free-education): who Toppertube is for and where to start
+- [Full description for AI](https://www.toppertube.online/llms-full.txt) and [catalog.json](https://www.toppertube.online/catalog.json)
 
 ## Categories
 - [Science & Maths](https://www.toppertube.online/category/science-and-maths): Physics, chemistry, mathematics and general science explained clearly, from school basics to university-level ideas. 38 channels.

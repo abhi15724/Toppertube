@@ -1,0 +1,81 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, fmtDate } from '../../lib/posts.js';
+
+export function getStaticPaths() {
+  return getPosts().map(post => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const SITE = 'https://www.toppertube.online';
+const { post } = Astro.props;
+const { Content } = post;
+const related = getPosts().filter(p => p.slug !== post.slug).slice(0, 3);
+const url = `${SITE}/blog/${post.slug}`;
+const ld = [
+  { '@type': 'BlogPosting', '@id': url + '#article', headline: post.title, description: post.description, url, mainEntityOfPage: url,
+    datePublished: post.date, dateModified: post.updated || post.date, wordCount: post.words, inLanguage: 'en',
+    keywords: (post.tags || []).join(', '), image: [SITE + '/og-image.png'],
+    author: { '@type': 'Organization', name: 'Toppertube', url: SITE + '/' },
+    publisher: { '@type': 'Organization', '@id': SITE + '/#org', name: 'Toppertube', url: SITE + '/', logo: { '@type': 'ImageObject', url: SITE + '/favicon-512.png', width: 512, height: 512 } } },
+  { '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: SITE + '/blog' },
+    { '@type': 'ListItem', position: 3, name: post.title, item: url }] }
+];
+---
+<Base
+  title={`${post.seoTitle || post.title} | Toppertube`}
+  description={post.description}
+  path={`/blog/${post.slug}`}
+  ogType="article"
+  published={post.date}
+  modified={post.updated || post.date}
+  jsonLd={ld}
+>
+  <article class="wrap art">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a></nav>
+    <header class="art-head">
+      <p class="tagline">{(post.tags || []).slice(0, 2).join(' · ')}</p>
+      <h1>{post.title}</h1>
+      <p class="lead">{post.description}</p>
+      <p class="meta"><time datetime={post.date}>{fmtDate(post.date)}</time> · {post.minutes} min read · By the Toppertube team</p>
+    </header>
+    <div class="prose"><Content /></div>
+    <aside class="acta">
+      <h2>Turn what you just read into a habit</h2>
+      <p>Paste a YouTube playlist into Toppertube and get a course with lessons, notes beside the video, progress tracking and a certificate. It is free and needs no account.</p>
+      <div class="btns"><a class="btn white" href="/start">Start learning free</a><a class="btn2 ghostw" href="/free-online-courses">How free courses work</a></div>
+    </aside>
+  </article>
+  <section class="wrap rel">
+    <h2>Keep reading</h2>
+    <ul class="grid">
+      {related.map(p => (
+        <li><a class="card" href={`/blog/${p.slug}`}><small class="mutl">{p.minutes} min read</small><h3>{p.title}</h3><p>{p.description}</p></a></li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style is:global>
+.art{max-width:760px;padding-top:clamp(24px,4vw,48px)}
+.crumbs{font-size:14px;color:var(--mut);margin:0 0 18px}.crumbs a{color:var(--mut)}
+.art-head h1{font-size:clamp(1.9rem,1.2rem + 3vw,3rem);margin:6px 0 14px}
+.tagline{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--link);margin:0}
+.meta{color:var(--mut);font-size:14.5px;margin:0 0 28px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.prose{font-size:clamp(1.02rem,.98rem + .25vw,1.14rem);line-height:1.8}
+.prose h2{font-size:clamp(1.4rem,1.15rem + 1vw,1.85rem);margin:2em 0 .6em}
+.prose h3{font-size:1.2rem;margin:1.6em 0 .4em}
+.prose p{margin:0 0 1.15em}.prose ul,.prose ol{margin:0 0 1.2em;padding-left:1.4em}.prose li{margin:.35em 0}
+.prose blockquote{margin:1.4em 0;padding:.4em 1.2em;border-left:4px solid var(--brand);background:var(--tint);border-radius:0 12px 12px 0;color:var(--ink)}
+.prose blockquote p{margin:.5em 0}
+.prose table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.95em;display:block;overflow-x:auto}
+.prose th,.prose td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}.prose th{background:var(--tint)}
+.prose code{background:var(--tint);padding:.1em .35em;border-radius:6px;font-size:.92em}
+.prose pre{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:.92em;line-height:1.6}.prose pre code{background:none;padding:0}
+.prose hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.acta{margin:44px 0 0;padding:clamp(22px,4vw,36px);border-radius:22px;background:linear-gradient(135deg,#d62839,#ff6b4a);color:#fff}
+.acta h2{color:#fff;margin:0 0 8px;font-size:1.5rem}.acta p{margin:0 0 18px;opacity:.95}
+.btn.white{background:#fff;color:#b3162a;box-shadow:none}.ghostw{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}.ghostw:hover{background:rgba(255,255,255,.12);color:#fff;border-color:#fff}
+.rel{padding-top:56px;padding-bottom:56px}.mutl{color:var(--mut)}
+</style>

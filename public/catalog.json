@@ -1,0 +1,1359 @@
+{
+ "name": "Toppertube",
+ "url": "https://www.toppertube.online/",
+ "description": "Free learning videos from 301 trusted YouTube channels in 21 subjects, with courses, notes and certificates.",
+ "updated": "2026-11-19",
+ "categories": [
+  {
+   "name": "Science & Maths",
+   "url": "https://www.toppertube.online/category/science-and-maths",
+   "description": "Physics, chemistry, mathematics and general science explained clearly, from school basics to university-level ideas.",
+   "channels": [
+    {
+     "name": "Khan Academy",
+     "url": "https://www.toppertube.online/channel/Khan%20Academy"
+    },
+    {
+     "name": "Veritasium",
+     "url": "https://www.toppertube.online/channel/Veritasium"
+    },
+    {
+     "name": "Kurzgesagt – In a Nutshell",
+     "url": "https://www.toppertube.online/channel/Kurzgesagt%20%E2%80%93%20In%20a%20Nutshell"
+    },
+    {
+     "name": "3Blue1Brown",
+     "url": "https://www.toppertube.online/channel/3Blue1Brown"
+    },
+    {
+     "name": "Vsauce",
+     "url": "https://www.toppertube.online/channel/Vsauce"
+    },
+    {
+     "name": "Mark Rober",
+     "url": "https://www.toppertube.online/channel/Mark%20Rober"
+    },
+    {
+     "name": "SmarterEveryDay",
+     "url": "https://www.toppertube.online/channel/SmarterEveryDay"
+    },
+    {
+     "name": "MinutePhysics",
+     "url": "https://www.toppertube.online/channel/MinutePhysics"
+    },
+    {
+     "name": "Numberphile",
+     "url": "https://www.toppertube.online/channel/Numberphile"
+    },
+    {
+     "name": "Physics Girl",
+     "url": "https://www.toppertube.online/channel/Physics%20Girl"
+    },
+    {
+     "name": "SciShow",
+     "url": "https://www.toppertube.online/channel/SciShow"
+    },
+    {
+     "name": "The Action Lab",
+     "url": "https://www.toppertube.online/channel/The%20Action%20Lab"
+    },
+    {
+     "name": "Steve Mould",
+     "url": "https://www.toppertube.online/channel/Steve%20Mould"
+    },
+    {
+     "name": "Brilliant",
+     "url": "https://www.toppertube.online/channel/Brilliant"
+    },
+    {
+     "name": "CrashCourse",
+     "url": "https://www.toppertube.online/channel/CrashCourse"
+    },
+    {
+     "name": "TED-Ed",
+     "url": "https://www.toppertube.online/channel/TED-Ed"
+    },
+    {
+     "name": "Bharat Panchal",
+     "url": "https://www.toppertube.online/channel/Bharat%20Panchal"
+    },
+    {
+     "name": "Tyler DeWitt",
+     "url": "https://www.toppertube.online/channel/Tyler%20DeWitt"
+    },
+    {
+     "name": "The Organic Chemistry Tutor",
+     "url": "https://www.toppertube.online/channel/The%20Organic%20Chemistry%20Tutor"
+    },
+    {
+     "name": "Maths by Rakesh Yadav",
+     "url": "https://www.toppertube.online/channel/Maths%20by%20Rakesh%20Yadav"
+    },
+    {
+     "name": "Eddie Woo",
+     "url": "https://www.toppertube.online/channel/Eddie%20Woo"
+    },
+    {
+     "name": "Professor Leonard",
+     "url": "https://www.toppertube.online/channel/Professor%20Leonard"
+    },
+    {
+     "name": "Physics Galaxy",
+     "url": "https://www.toppertube.online/channel/Physics%20Galaxy"
+    },
+    {
+     "name": "Flipping Physics",
+     "url": "https://www.toppertube.online/channel/Flipping%20Physics"
+    },
+    {
+     "name": "Michel van Biezen",
+     "url": "https://www.toppertube.online/channel/Michel%20van%20Biezen"
+    },
+    {
+     "name": "Scott Manley",
+     "url": "https://www.toppertube.online/channel/Scott%20Manley"
+    },
+    {
+     "name": "NileRed",
+     "url": "https://www.toppertube.online/channel/NileRed"
+    },
+    {
+     "name": "Periodic Videos",
+     "url": "https://www.toppertube.online/channel/Periodic%20Videos"
+    },
+    {
+     "name": "PatrickJMT",
+     "url": "https://www.toppertube.online/channel/PatrickJMT"
+    },
+    {
+     "name": "Mathologer",
+     "url": "https://www.toppertube.online/channel/Mathologer"
+    },
+    {
+     "name": "blackpenredpen",
+     "url": "https://www.toppertube.online/channel/blackpenredpen"
+    },
+    {
+     "name": "Dr Trefor Bazett",
+     "url": "https://www.toppertube.online/channel/Dr%20Trefor%20Bazett"
+    },
+    {
+     "name": "Domain of Science",
+     "url": "https://www.toppertube.online/channel/Domain%20of%20Science"
+    },
+    {
+     "name": "PBS Space Time",
+     "url": "https://www.toppertube.online/channel/PBS%20Space%20Time"
+    },
+    {
+     "name": "Sabine Hossenfelder",
+     "url": "https://www.toppertube.online/channel/Sabine%20Hossenfelder"
+    },
+    {
+     "name": "Professor Dave Explains",
+     "url": "https://www.toppertube.online/channel/Professor%20Dave%20Explains"
+    },
+    {
+     "name": "Zach Star",
+     "url": "https://www.toppertube.online/channel/Zach%20Star"
+    },
+    {
+     "name": "MIT OpenCourseWare",
+     "url": "https://www.toppertube.online/channel/MIT%20OpenCourseWare"
+    }
+   ]
+  },
+  {
+   "name": "School (India)",
+   "url": "https://www.toppertube.online/category/school-india",
+   "description": "Class-wise lessons for Indian school students, covering the NCERT-style syllabus in English and Hindi.",
+   "channels": [
+    {
+     "name": "Physics Wallah",
+     "url": "https://www.toppertube.online/channel/Physics%20Wallah"
+    },
+    {
+     "name": "Magnet Brains",
+     "url": "https://www.toppertube.online/channel/Magnet%20Brains"
+    },
+    {
+     "name": "Vedantu",
+     "url": "https://www.toppertube.online/channel/Vedantu"
+    },
+    {
+     "name": "Unacademy",
+     "url": "https://www.toppertube.online/channel/Unacademy"
+    },
+    {
+     "name": "Khan Academy India",
+     "url": "https://www.toppertube.online/channel/Khan%20Academy%20India"
+    },
+    {
+     "name": "LearnoHub",
+     "url": "https://www.toppertube.online/channel/LearnoHub"
+    },
+    {
+     "name": "Dear Sir",
+     "url": "https://www.toppertube.online/channel/Dear%20Sir"
+    },
+    {
+     "name": "NCERT Official",
+     "url": "https://www.toppertube.online/channel/NCERT%20Official"
+    },
+    {
+     "name": "Doubtnut",
+     "url": "https://www.toppertube.online/channel/Doubtnut"
+    },
+    {
+     "name": "Study with Sudhir",
+     "url": "https://www.toppertube.online/channel/Study%20with%20Sudhir"
+    },
+    {
+     "name": "PW Foundation",
+     "url": "https://www.toppertube.online/channel/PW%20Foundation"
+    }
+   ]
+  },
+  {
+   "name": "Exam Prep",
+   "url": "https://www.toppertube.online/category/exam-prep",
+   "description": "Preparation videos for competitive exams such as UPSC, SSC, banking, GATE, JEE and NEET, plus English and aptitude practice.",
+   "channels": [
+    {
+     "name": "StudyIQ IAS",
+     "url": "https://www.toppertube.online/channel/StudyIQ%20IAS"
+    },
+    {
+     "name": "Drishti IAS",
+     "url": "https://www.toppertube.online/channel/Drishti%20IAS"
+    },
+    {
+     "name": "Vision IAS",
+     "url": "https://www.toppertube.online/channel/Vision%20IAS"
+    },
+    {
+     "name": "Unacademy UPSC",
+     "url": "https://www.toppertube.online/channel/Unacademy%20UPSC"
+    },
+    {
+     "name": "Adda247",
+     "url": "https://www.toppertube.online/channel/Adda247"
+    },
+    {
+     "name": "wifistudy",
+     "url": "https://www.toppertube.online/channel/wifistudy"
+    },
+    {
+     "name": "Rojgar with Ankit",
+     "url": "https://www.toppertube.online/channel/Rojgar%20with%20Ankit"
+    },
+    {
+     "name": "Khan GS Research Centre",
+     "url": "https://www.toppertube.online/channel/Khan%20GS%20Research%20Centre"
+    },
+    {
+     "name": "Utkarsh Classes",
+     "url": "https://www.toppertube.online/channel/Utkarsh%20Classes"
+    },
+    {
+     "name": "Exampur",
+     "url": "https://www.toppertube.online/channel/Exampur"
+    },
+    {
+     "name": "SSC Adda247",
+     "url": "https://www.toppertube.online/channel/SSC%20Adda247"
+    },
+    {
+     "name": "Testbook",
+     "url": "https://www.toppertube.online/channel/Testbook"
+    },
+    {
+     "name": "GATE Wallah",
+     "url": "https://www.toppertube.online/channel/GATE%20Wallah"
+    },
+    {
+     "name": "NEET Wallah",
+     "url": "https://www.toppertube.online/channel/NEET%20Wallah"
+    },
+    {
+     "name": "JEE Wallah",
+     "url": "https://www.toppertube.online/channel/JEE%20Wallah"
+    },
+    {
+     "name": "English Connection",
+     "url": "https://www.toppertube.online/channel/English%20Connection"
+    },
+    {
+     "name": "English with Rani Ma'am",
+     "url": "https://www.toppertube.online/channel/English%20with%20Rani%20Ma'am"
+    },
+    {
+     "name": "TsMadaan",
+     "url": "https://www.toppertube.online/channel/TsMadaan"
+    },
+    {
+     "name": "Magoosh",
+     "url": "https://www.toppertube.online/channel/Magoosh"
+    },
+    {
+     "name": "BYJU'S Exam Prep",
+     "url": "https://www.toppertube.online/channel/BYJU'S%20Exam%20Prep"
+    }
+   ]
+  },
+  {
+   "name": "Programming & Tech",
+   "url": "https://www.toppertube.online/category/programming-and-tech",
+   "description": "Learn programming, web development, data structures, AI, cloud and cybersecurity from free tutorials and university lectures.",
+   "channels": [
+    {
+     "name": "CodeWithHarry",
+     "url": "https://www.toppertube.online/channel/CodeWithHarry"
+    },
+    {
+     "name": "Apna College",
+     "url": "https://www.toppertube.online/channel/Apna%20College"
+    },
+    {
+     "name": "CampusX",
+     "url": "https://www.toppertube.online/channel/CampusX"
+    },
+    {
+     "name": "Gate Smashers",
+     "url": "https://www.toppertube.online/channel/Gate%20Smashers"
+    },
+    {
+     "name": "Jenny's Lectures CS IT",
+     "url": "https://www.toppertube.online/channel/Jenny's%20Lectures%20CS%20IT"
+    },
+    {
+     "name": "Telusko",
+     "url": "https://www.toppertube.online/channel/Telusko"
+    },
+    {
+     "name": "Chai aur Code",
+     "url": "https://www.toppertube.online/channel/Chai%20aur%20Code"
+    },
+    {
+     "name": "Hitesh Choudhary",
+     "url": "https://www.toppertube.online/channel/Hitesh%20Choudhary"
+    },
+    {
+     "name": "WsCube Tech",
+     "url": "https://www.toppertube.online/channel/WsCube%20Tech"
+    },
+    {
+     "name": "Intellipaat",
+     "url": "https://www.toppertube.online/channel/Intellipaat"
+    },
+    {
+     "name": "Simplilearn",
+     "url": "https://www.toppertube.online/channel/Simplilearn"
+    },
+    {
+     "name": "Great Learning",
+     "url": "https://www.toppertube.online/channel/Great%20Learning"
+    },
+    {
+     "name": "Edureka",
+     "url": "https://www.toppertube.online/channel/Edureka"
+    },
+    {
+     "name": "freeCodeCamp.org",
+     "url": "https://www.toppertube.online/channel/freeCodeCamp.org"
+    },
+    {
+     "name": "Fireship",
+     "url": "https://www.toppertube.online/channel/Fireship"
+    },
+    {
+     "name": "Computerphile",
+     "url": "https://www.toppertube.online/channel/Computerphile"
+    },
+    {
+     "name": "Corey Schafer",
+     "url": "https://www.toppertube.online/channel/Corey%20Schafer"
+    },
+    {
+     "name": "Tech With Tim",
+     "url": "https://www.toppertube.online/channel/Tech%20With%20Tim"
+    },
+    {
+     "name": "NetworkChuck",
+     "url": "https://www.toppertube.online/channel/NetworkChuck"
+    },
+    {
+     "name": "The Coding Train",
+     "url": "https://www.toppertube.online/channel/The%20Coding%20Train"
+    },
+    {
+     "name": "Sebastian Lague",
+     "url": "https://www.toppertube.online/channel/Sebastian%20Lague"
+    },
+    {
+     "name": "Network Kings",
+     "url": "https://www.toppertube.online/channel/Network%20Kings"
+    },
+    {
+     "name": "Professor Messer",
+     "url": "https://www.toppertube.online/channel/Professor%20Messer"
+    },
+    {
+     "name": "John Hammond",
+     "url": "https://www.toppertube.online/channel/John%20Hammond"
+    },
+    {
+     "name": "The Net Ninja",
+     "url": "https://www.toppertube.online/channel/The%20Net%20Ninja"
+    },
+    {
+     "name": "Traversy Media",
+     "url": "https://www.toppertube.online/channel/Traversy%20Media"
+    },
+    {
+     "name": "Programming with Mosh",
+     "url": "https://www.toppertube.online/channel/Programming%20with%20Mosh"
+    },
+    {
+     "name": "Web Dev Simplified",
+     "url": "https://www.toppertube.online/channel/Web%20Dev%20Simplified"
+    },
+    {
+     "name": "Kevin Powell",
+     "url": "https://www.toppertube.online/channel/Kevin%20Powell"
+    },
+    {
+     "name": "NeetCode",
+     "url": "https://www.toppertube.online/channel/NeetCode"
+    },
+    {
+     "name": "Abdul Bari",
+     "url": "https://www.toppertube.online/channel/Abdul%20Bari"
+    },
+    {
+     "name": "take U forward",
+     "url": "https://www.toppertube.online/channel/take%20U%20forward"
+    },
+    {
+     "name": "Love Babbar",
+     "url": "https://www.toppertube.online/channel/Love%20Babbar"
+    },
+    {
+     "name": "Kunal Kushwaha",
+     "url": "https://www.toppertube.online/channel/Kunal%20Kushwaha"
+    },
+    {
+     "name": "CS50",
+     "url": "https://www.toppertube.online/channel/CS50"
+    },
+    {
+     "name": "Academind",
+     "url": "https://www.toppertube.online/channel/Academind"
+    },
+    {
+     "name": "TechWorld with Nana",
+     "url": "https://www.toppertube.online/channel/TechWorld%20with%20Nana"
+    },
+    {
+     "name": "ByteByteGo",
+     "url": "https://www.toppertube.online/channel/ByteByteGo"
+    },
+    {
+     "name": "Bro Code",
+     "url": "https://www.toppertube.online/channel/Bro%20Code"
+    },
+    {
+     "name": "Hussein Nasser",
+     "url": "https://www.toppertube.online/channel/Hussein%20Nasser"
+    },
+    {
+     "name": "Google Cloud Tech",
+     "url": "https://www.toppertube.online/channel/Google%20Cloud%20Tech"
+    },
+    {
+     "name": "Stanford Online",
+     "url": "https://www.toppertube.online/channel/Stanford%20Online"
+    }
+   ]
+  },
+  {
+   "name": "AI",
+   "url": "https://www.toppertube.online/category/ai",
+   "description": "Artificial intelligence, machine learning, large language models, AI agents and prompt engineering, from beginner explainers to research talks and hands-on tutorials.",
+   "channels": [
+    {
+     "name": "Krish Naik",
+     "url": "https://www.toppertube.online/channel/Krish%20Naik"
+    },
+    {
+     "name": "Two Minute Papers",
+     "url": "https://www.toppertube.online/channel/Two%20Minute%20Papers"
+    },
+    {
+     "name": "Andrej Karpathy",
+     "url": "https://www.toppertube.online/channel/Andrej%20Karpathy"
+    },
+    {
+     "name": "DeepLearningAI",
+     "url": "https://www.toppertube.online/channel/DeepLearningAI"
+    },
+    {
+     "name": "sentdex",
+     "url": "https://www.toppertube.online/channel/sentdex"
+    },
+    {
+     "name": "AI Explained",
+     "url": "https://www.toppertube.online/channel/AI%20Explained"
+    },
+    {
+     "name": "Yannic Kilcher",
+     "url": "https://www.toppertube.online/channel/Yannic%20Kilcher"
+    },
+    {
+     "name": "AI Engineer",
+     "url": "https://www.toppertube.online/channel/AI%20Engineer"
+    },
+    {
+     "name": "Anthropic",
+     "url": "https://www.toppertube.online/channel/Anthropic"
+    },
+    {
+     "name": "Claude",
+     "url": "https://www.toppertube.online/channel/Claude"
+    },
+    {
+     "name": "OpenAI",
+     "url": "https://www.toppertube.online/channel/OpenAI"
+    },
+    {
+     "name": "Google DeepMind",
+     "url": "https://www.toppertube.online/channel/Google%20DeepMind"
+    },
+    {
+     "name": "Hugging Face",
+     "url": "https://www.toppertube.online/channel/Hugging%20Face"
+    },
+    {
+     "name": "LangChain",
+     "url": "https://www.toppertube.online/channel/LangChain"
+    },
+    {
+     "name": "Microsoft Research",
+     "url": "https://www.toppertube.online/channel/Microsoft%20Research"
+    },
+    {
+     "name": "StatQuest with Josh Starmer",
+     "url": "https://www.toppertube.online/channel/StatQuest%20with%20Josh%20Starmer"
+    },
+    {
+     "name": "Machine Learning Street Talk",
+     "url": "https://www.toppertube.online/channel/Machine%20Learning%20Street%20Talk"
+    },
+    {
+     "name": "Matt Wolfe",
+     "url": "https://www.toppertube.online/channel/Matt%20Wolfe"
+    },
+    {
+     "name": "Matthew Berman",
+     "url": "https://www.toppertube.online/channel/Matthew%20Berman"
+    },
+    {
+     "name": "Wes Roth",
+     "url": "https://www.toppertube.online/channel/Wes%20Roth"
+    },
+    {
+     "name": "Sam Witteveen",
+     "url": "https://www.toppertube.online/channel/Sam%20Witteveen"
+    },
+    {
+     "name": "Dwarkesh Patel",
+     "url": "https://www.toppertube.online/channel/Dwarkesh%20Patel"
+    },
+    {
+     "name": "AI Jason",
+     "url": "https://www.toppertube.online/channel/AI%20Jason"
+    },
+    {
+     "name": "All About AI",
+     "url": "https://www.toppertube.online/channel/All%20About%20AI"
+    },
+    {
+     "name": "The AI Advantage",
+     "url": "https://www.toppertube.online/channel/The%20AI%20Advantage"
+    },
+    {
+     "name": "Cole Medin",
+     "url": "https://www.toppertube.online/channel/Cole%20Medin"
+    },
+    {
+     "name": "Nick Saraev",
+     "url": "https://www.toppertube.online/channel/Nick%20Saraev"
+    },
+    {
+     "name": "bycloud",
+     "url": "https://www.toppertube.online/channel/bycloud"
+    },
+    {
+     "name": "codebasics",
+     "url": "https://www.toppertube.online/channel/codebasics"
+    },
+    {
+     "name": "Mervin Praison",
+     "url": "https://www.toppertube.online/channel/Mervin%20Praison"
+    },
+    {
+     "name": "Lex Fridman",
+     "url": "https://www.toppertube.online/channel/Lex%20Fridman"
+    }
+   ]
+  },
+  {
+   "name": "History & GK",
+   "url": "https://www.toppertube.online/category/history-and-gk",
+   "description": "History, geography, current affairs and general knowledge, from world history documentaries to quick explainers.",
+   "channels": [
+    {
+     "name": "Soch by Mohak Mangal",
+     "url": "https://www.toppertube.online/channel/Soch%20by%20Mohak%20Mangal"
+    },
+    {
+     "name": "Nitish Rajput",
+     "url": "https://www.toppertube.online/channel/Nitish%20Rajput"
+    },
+    {
+     "name": "Abhi and Niyu",
+     "url": "https://www.toppertube.online/channel/Abhi%20and%20Niyu"
+    },
+    {
+     "name": "The Lallantop",
+     "url": "https://www.toppertube.online/channel/The%20Lallantop"
+    },
+    {
+     "name": "Think School",
+     "url": "https://www.toppertube.online/channel/Think%20School"
+    },
+    {
+     "name": "StudyIQ",
+     "url": "https://www.toppertube.online/channel/StudyIQ"
+    },
+    {
+     "name": "Praveen Mohan",
+     "url": "https://www.toppertube.online/channel/Praveen%20Mohan"
+    },
+    {
+     "name": "GetsetflySCIENCE",
+     "url": "https://www.toppertube.online/channel/GetsetflySCIENCE"
+    },
+    {
+     "name": "FactTechz",
+     "url": "https://www.toppertube.online/channel/FactTechz"
+    },
+    {
+     "name": "RealLifeLore",
+     "url": "https://www.toppertube.online/channel/RealLifeLore"
+    },
+    {
+     "name": "Wendover Productions",
+     "url": "https://www.toppertube.online/channel/Wendover%20Productions"
+    },
+    {
+     "name": "Oversimplified",
+     "url": "https://www.toppertube.online/channel/Oversimplified"
+    },
+    {
+     "name": "History Matters",
+     "url": "https://www.toppertube.online/channel/History%20Matters"
+    },
+    {
+     "name": "The Infographics Show",
+     "url": "https://www.toppertube.online/channel/The%20Infographics%20Show"
+    },
+    {
+     "name": "History Hit",
+     "url": "https://www.toppertube.online/channel/History%20Hit"
+    },
+    {
+     "name": "Kings and Generals",
+     "url": "https://www.toppertube.online/channel/Kings%20and%20Generals"
+    },
+    {
+     "name": "Epic History TV",
+     "url": "https://www.toppertube.online/channel/Epic%20History%20TV"
+    },
+    {
+     "name": "The Armchair Historian",
+     "url": "https://www.toppertube.online/channel/The%20Armchair%20Historian"
+    },
+    {
+     "name": "Fall of Civilizations",
+     "url": "https://www.toppertube.online/channel/Fall%20of%20Civilizations"
+    },
+    {
+     "name": "Geography Now",
+     "url": "https://www.toppertube.online/channel/Geography%20Now"
+    },
+    {
+     "name": "Johnny Harris",
+     "url": "https://www.toppertube.online/channel/Johnny%20Harris"
+    },
+    {
+     "name": "Vox",
+     "url": "https://www.toppertube.online/channel/Vox"
+    },
+    {
+     "name": "PBS Eons",
+     "url": "https://www.toppertube.online/channel/PBS%20Eons"
+    },
+    {
+     "name": "National Geographic",
+     "url": "https://www.toppertube.online/channel/National%20Geographic"
+    },
+    {
+     "name": "Khan GS",
+     "url": "https://www.toppertube.online/channel/Khan%20GS"
+    },
+    {
+     "name": "Gaurav Thakur",
+     "url": "https://www.toppertube.online/channel/Gaurav%20Thakur"
+    },
+    {
+     "name": "Sangam Talks",
+     "url": "https://www.toppertube.online/channel/Sangam%20Talks"
+    },
+    {
+     "name": "Hyper Quest",
+     "url": "https://www.toppertube.online/channel/Hyper%20Quest"
+    },
+    {
+     "name": "DustyThrones",
+     "url": "https://www.toppertube.online/channel/DustyThrones"
+    }
+   ]
+  },
+  {
+   "name": "Business & Finance",
+   "url": "https://www.toppertube.online/category/business-and-finance",
+   "description": "Business, economics, startups and money, taught through case studies, lectures and plain-language explainers.",
+   "channels": [
+    {
+     "name": "The Plain Bagel",
+     "url": "https://www.toppertube.online/channel/The%20Plain%20Bagel"
+    },
+    {
+     "name": "Patrick Boyle",
+     "url": "https://www.toppertube.online/channel/Patrick%20Boyle"
+    },
+    {
+     "name": "Economics Explained",
+     "url": "https://www.toppertube.online/channel/Economics%20Explained"
+    },
+    {
+     "name": "How Money Works",
+     "url": "https://www.toppertube.online/channel/How%20Money%20Works"
+    },
+    {
+     "name": "Modern MBA",
+     "url": "https://www.toppertube.online/channel/Modern%20MBA"
+    },
+    {
+     "name": "Company Man",
+     "url": "https://www.toppertube.online/channel/Company%20Man"
+    },
+    {
+     "name": "ColdFusion",
+     "url": "https://www.toppertube.online/channel/ColdFusion"
+    },
+    {
+     "name": "Business Casual",
+     "url": "https://www.toppertube.online/channel/Business%20Casual"
+    },
+    {
+     "name": "The Swedish Investor",
+     "url": "https://www.toppertube.online/channel/The%20Swedish%20Investor"
+    },
+    {
+     "name": "Alex Hormozi",
+     "url": "https://www.toppertube.online/channel/Alex%20Hormozi"
+    },
+    {
+     "name": "Y Combinator",
+     "url": "https://www.toppertube.online/channel/Y%20Combinator"
+    },
+    {
+     "name": "Stanford Graduate School of Business",
+     "url": "https://www.toppertube.online/channel/Stanford%20Graduate%20School%20of%20Business"
+    },
+    {
+     "name": "Harvard Business Review",
+     "url": "https://www.toppertube.online/channel/Harvard%20Business%20Review"
+    },
+    {
+     "name": "Varun Mayya",
+     "url": "https://www.toppertube.online/channel/Varun%20Mayya"
+    }
+   ]
+  },
+  {
+   "name": "Creative & Design",
+   "url": "https://www.toppertube.online/category/creative-and-design",
+   "description": "Filmmaking, video editing, 3D, graphic design and photography tutorials for people who want to make things.",
+   "channels": [
+    {
+     "name": "Corridor Crew",
+     "url": "https://www.toppertube.online/channel/Corridor%20Crew"
+    },
+    {
+     "name": "Film Riot",
+     "url": "https://www.toppertube.online/channel/Film%20Riot"
+    },
+    {
+     "name": "Blender Guru",
+     "url": "https://www.toppertube.online/channel/Blender%20Guru"
+    },
+    {
+     "name": "This Guy Edits",
+     "url": "https://www.toppertube.online/channel/This%20Guy%20Edits"
+    },
+    {
+     "name": "Cinecom.net",
+     "url": "https://www.toppertube.online/channel/Cinecom.net"
+    },
+    {
+     "name": "Daniel Schiffer",
+     "url": "https://www.toppertube.online/channel/Daniel%20Schiffer"
+    },
+    {
+     "name": "Peter McKinnon",
+     "url": "https://www.toppertube.online/channel/Peter%20McKinnon"
+    },
+    {
+     "name": "Casey Neistat",
+     "url": "https://www.toppertube.online/channel/Casey%20Neistat"
+    },
+    {
+     "name": "StudioBinder",
+     "url": "https://www.toppertube.online/channel/StudioBinder"
+    },
+    {
+     "name": "The Film Look",
+     "url": "https://www.toppertube.online/channel/The%20Film%20Look"
+    },
+    {
+     "name": "RocketJump Film School",
+     "url": "https://www.toppertube.online/channel/RocketJump%20Film%20School"
+    },
+    {
+     "name": "ActionVFX",
+     "url": "https://www.toppertube.online/channel/ActionVFX"
+    },
+    {
+     "name": "CG Geek",
+     "url": "https://www.toppertube.online/channel/CG%20Geek"
+    },
+    {
+     "name": "Ducky 3D",
+     "url": "https://www.toppertube.online/channel/Ducky%203D"
+    },
+    {
+     "name": "Video Copilot",
+     "url": "https://www.toppertube.online/channel/Video%20Copilot"
+    },
+    {
+     "name": "Design Pilot",
+     "url": "https://www.toppertube.online/channel/Design%20Pilot"
+    },
+    {
+     "name": "Satori Graphics",
+     "url": "https://www.toppertube.online/channel/Satori%20Graphics"
+    },
+    {
+     "name": "The Futur",
+     "url": "https://www.toppertube.online/channel/The%20Futur"
+    },
+    {
+     "name": "Blender Hindi",
+     "url": "https://www.toppertube.online/channel/Blender%20Hindi"
+    },
+    {
+     "name": "Figma",
+     "url": "https://www.toppertube.online/channel/Figma"
+    },
+    {
+     "name": "Gary Simon",
+     "url": "https://www.toppertube.online/channel/Gary%20Simon"
+    }
+   ]
+  },
+  {
+   "name": "English & Languages",
+   "url": "https://www.toppertube.online/category/english-and-languages",
+   "description": "Spoken English, grammar, pronunciation and other languages, taught by experienced language teachers.",
+   "channels": [
+    {
+     "name": "BBC Learning English",
+     "url": "https://www.toppertube.online/channel/BBC%20Learning%20English"
+    },
+    {
+     "name": "English with Lucy",
+     "url": "https://www.toppertube.online/channel/English%20with%20Lucy"
+    },
+    {
+     "name": "Rachel's English",
+     "url": "https://www.toppertube.online/channel/Rachel's%20English"
+    },
+    {
+     "name": "Learn English with Let's Talk",
+     "url": "https://www.toppertube.online/channel/Learn%20English%20with%20Let's%20Talk"
+    },
+    {
+     "name": "Easy Languages",
+     "url": "https://www.toppertube.online/channel/Easy%20Languages"
+    },
+    {
+     "name": "Langfocus",
+     "url": "https://www.toppertube.online/channel/Langfocus"
+    },
+    {
+     "name": "Dreaming Spanish",
+     "url": "https://www.toppertube.online/channel/Dreaming%20Spanish"
+    },
+    {
+     "name": "Speak English with Vanessa",
+     "url": "https://www.toppertube.online/channel/Speak%20English%20with%20Vanessa"
+    },
+    {
+     "name": "engVid",
+     "url": "https://www.toppertube.online/channel/engVid"
+    }
+   ]
+  },
+  {
+   "name": "Health & Psychology",
+   "url": "https://www.toppertube.online/category/health-and-psychology",
+   "description": "Medicine, anatomy, physiology and psychology lessons for students, plus health science explained simply.",
+   "channels": [
+    {
+     "name": "Dr. Najeeb",
+     "url": "https://www.toppertube.online/channel/Dr.%20Najeeb"
+    },
+    {
+     "name": "Osmosis",
+     "url": "https://www.toppertube.online/channel/Osmosis"
+    },
+    {
+     "name": "Ninja Nerd",
+     "url": "https://www.toppertube.online/channel/Ninja%20Nerd"
+    },
+    {
+     "name": "Dr. Praveen Tripathi",
+     "url": "https://www.toppertube.online/channel/Dr.%20Praveen%20Tripathi"
+    },
+    {
+     "name": "Psych2Go",
+     "url": "https://www.toppertube.online/channel/Psych2Go"
+    },
+    {
+     "name": "Sprouts",
+     "url": "https://www.toppertube.online/channel/Sprouts"
+    },
+    {
+     "name": "Zero to Finals",
+     "url": "https://www.toppertube.online/channel/Zero%20to%20Finals"
+    },
+    {
+     "name": "Medicosis Perfectionalis",
+     "url": "https://www.toppertube.online/channel/Medicosis%20Perfectionalis"
+    },
+    {
+     "name": "Alila Medical Media",
+     "url": "https://www.toppertube.online/channel/Alila%20Medical%20Media"
+    },
+    {
+     "name": "Dirty Medicine",
+     "url": "https://www.toppertube.online/channel/Dirty%20Medicine"
+    },
+    {
+     "name": "Huberman Lab",
+     "url": "https://www.toppertube.online/channel/Huberman%20Lab"
+    }
+   ]
+  },
+  {
+   "name": "Biology",
+   "url": "https://www.toppertube.online/category/biology",
+   "description": "Cells, genetics, ecology, evolution and human biology, made for school and early university students.",
+   "channels": [
+    {
+     "name": "Biology at Ease",
+     "url": "https://www.toppertube.online/channel/Biology%20at%20Ease"
+    },
+    {
+     "name": "Amoeba Sisters",
+     "url": "https://www.toppertube.online/channel/Amoeba%20Sisters"
+    },
+    {
+     "name": "Bozeman Science",
+     "url": "https://www.toppertube.online/channel/Bozeman%20Science"
+    },
+    {
+     "name": "Armando Hasudungan",
+     "url": "https://www.toppertube.online/channel/Armando%20Hasudungan"
+    },
+    {
+     "name": "Seep Pahuja",
+     "url": "https://www.toppertube.online/channel/Seep%20Pahuja"
+    }
+   ]
+  },
+  {
+   "name": "Engineering",
+   "url": "https://www.toppertube.online/category/engineering",
+   "description": "Mechanical, civil, electrical and computer engineering, from first-year lectures to how real structures and machines work.",
+   "channels": [
+    {
+     "name": "30X40 Design Workshop",
+     "url": "https://www.toppertube.online/channel/30X40%20Design%20Workshop"
+    },
+    {
+     "name": "The B1M",
+     "url": "https://www.toppertube.online/channel/The%20B1M"
+    },
+    {
+     "name": "Architectural Digest",
+     "url": "https://www.toppertube.online/channel/Architectural%20Digest"
+    },
+    {
+     "name": "Neso Academy",
+     "url": "https://www.toppertube.online/channel/Neso%20Academy"
+    },
+    {
+     "name": "NPTEL",
+     "url": "https://www.toppertube.online/channel/NPTEL"
+    },
+    {
+     "name": "Learn Engineering",
+     "url": "https://www.toppertube.online/channel/Learn%20Engineering"
+    },
+    {
+     "name": "The Engineering Mindset",
+     "url": "https://www.toppertube.online/channel/The%20Engineering%20Mindset"
+    },
+    {
+     "name": "Real Engineering",
+     "url": "https://www.toppertube.online/channel/Real%20Engineering"
+    },
+    {
+     "name": "Practical Engineering",
+     "url": "https://www.toppertube.online/channel/Practical%20Engineering"
+    },
+    {
+     "name": "The Efficient Engineer",
+     "url": "https://www.toppertube.online/channel/The%20Efficient%20Engineer"
+    },
+    {
+     "name": "Engineering Explained",
+     "url": "https://www.toppertube.online/channel/Engineering%20Explained"
+    },
+    {
+     "name": "Brian Douglas",
+     "url": "https://www.toppertube.online/channel/Brian%20Douglas"
+    },
+    {
+     "name": "Stanford Engineering",
+     "url": "https://www.toppertube.online/channel/Stanford%20Engineering"
+    }
+   ]
+  },
+  {
+   "name": "Pharmacy",
+   "url": "https://www.toppertube.online/category/pharmacy",
+   "description": "Pharmacology, pharmaceutics and pharmacy exam preparation for D.Pharm, B.Pharm and GPAT students.",
+   "channels": [
+    {
+     "name": "Speed Pharmacology",
+     "url": "https://www.toppertube.online/channel/Speed%20Pharmacology"
+    },
+    {
+     "name": "Pharma Pathshala",
+     "url": "https://www.toppertube.online/channel/Pharma%20Pathshala"
+    },
+    {
+     "name": "Pharmacy Wallah",
+     "url": "https://www.toppertube.online/channel/Pharmacy%20Wallah"
+    },
+    {
+     "name": "Imperfect Pharmacy",
+     "url": "https://www.toppertube.online/channel/Imperfect%20Pharmacy"
+    }
+   ]
+  },
+  {
+   "name": "Commerce & Accounts",
+   "url": "https://www.toppertube.online/category/commerce-and-accounts",
+   "description": "Accounting, bookkeeping and commerce basics for school and college students.",
+   "channels": [
+    {
+     "name": "Accounting Stuff",
+     "url": "https://www.toppertube.online/channel/Accounting%20Stuff"
+    },
+    {
+     "name": "Commerce Baba",
+     "url": "https://www.toppertube.online/channel/Commerce%20Baba"
+    },
+    {
+     "name": "Edspira",
+     "url": "https://www.toppertube.online/channel/Edspira"
+    },
+    {
+     "name": "AccountingCoach",
+     "url": "https://www.toppertube.online/channel/AccountingCoach"
+    }
+   ]
+  },
+  {
+   "name": "Podcasts",
+   "url": "https://www.toppertube.online/category/podcasts",
+   "description": "Long-form interviews and conversations about business, careers and ideas. Some episodes can contain mature language.",
+   "channels": [
+    {
+     "name": "Raj Shamani",
+     "url": "https://www.toppertube.online/channel/Raj%20Shamani"
+    },
+    {
+     "name": "PowerfulJRE",
+     "url": "https://www.toppertube.online/channel/PowerfulJRE"
+    },
+    {
+     "name": "Nikhil Kamath",
+     "url": "https://www.toppertube.online/channel/Nikhil%20Kamath"
+    },
+    {
+     "name": "Figuring Out with Raj Shamani (full episodes)",
+     "url": "https://www.toppertube.online/channel/Figuring%20Out%20with%20Raj%20Shamani%20(full%20episodes)"
+    },
+    {
+     "name": "Prakhar Gupta",
+     "url": "https://www.toppertube.online/channel/Prakhar%20Gupta"
+    }
+   ]
+  },
+  {
+   "name": "Electronics & Hardware",
+   "url": "https://www.toppertube.online/category/electronics-and-hardware",
+   "description": "Electronics, circuits, microcontrollers and computer hardware, from first principles to hands-on builds.",
+   "channels": [
+    {
+     "name": "Ben Eater",
+     "url": "https://www.toppertube.online/channel/Ben%20Eater"
+    },
+    {
+     "name": "ElectroBOOM",
+     "url": "https://www.toppertube.online/channel/ElectroBOOM"
+    },
+    {
+     "name": "Techquickie",
+     "url": "https://www.toppertube.online/channel/Techquickie"
+    },
+    {
+     "name": "Linus Tech Tips",
+     "url": "https://www.toppertube.online/channel/Linus%20Tech%20Tips"
+    },
+    {
+     "name": "GreatScott!",
+     "url": "https://www.toppertube.online/channel/GreatScott!"
+    },
+    {
+     "name": "EEVblog",
+     "url": "https://www.toppertube.online/channel/EEVblog"
+    },
+    {
+     "name": "Adafruit Industries",
+     "url": "https://www.toppertube.online/channel/Adafruit%20Industries"
+    }
+   ]
+  },
+  {
+   "name": "Stock Market & Investing",
+   "url": "https://www.toppertube.online/category/stock-market-and-investing",
+   "description": "Investing, trading, personal finance and how markets work, explained for beginners and experienced learners.",
+   "channels": [
+    {
+     "name": "Zerodha Varsity",
+     "url": "https://www.toppertube.online/channel/Zerodha%20Varsity"
+    },
+    {
+     "name": "Trading Q&A by Zerodha",
+     "url": "https://www.toppertube.online/channel/Trading%20Q%26A%20by%20Zerodha"
+    },
+    {
+     "name": "Graham Stephan",
+     "url": "https://www.toppertube.online/channel/Graham%20Stephan"
+    },
+    {
+     "name": "Principles by Ray Dalio",
+     "url": "https://www.toppertube.online/channel/Principles%20by%20Ray%20Dalio"
+    },
+    {
+     "name": "Ben Felix",
+     "url": "https://www.toppertube.online/channel/Ben%20Felix"
+    },
+    {
+     "name": "Ankur Warikoo",
+     "url": "https://www.toppertube.online/channel/Ankur%20Warikoo"
+    },
+    {
+     "name": "Pranjal Kamra",
+     "url": "https://www.toppertube.online/channel/Pranjal%20Kamra"
+    },
+    {
+     "name": "Aswath Damodaran",
+     "url": "https://www.toppertube.online/channel/Aswath%20Damodaran"
+    },
+    {
+     "name": "CA Rachana Ranade",
+     "url": "https://www.toppertube.online/channel/CA%20Rachana%20Ranade"
+    },
+    {
+     "name": "Elearnmarkets",
+     "url": "https://www.toppertube.online/channel/Elearnmarkets"
+    },
+    {
+     "name": "Investopedia",
+     "url": "https://www.toppertube.online/channel/Investopedia"
+    },
+    {
+     "name": "Andrei Jikh",
+     "url": "https://www.toppertube.online/channel/Andrei%20Jikh"
+    },
+    {
+     "name": "Humphrey Yang",
+     "url": "https://www.toppertube.online/channel/Humphrey%20Yang"
+    },
+    {
+     "name": "Asset Yogi",
+     "url": "https://www.toppertube.online/channel/Asset%20Yogi"
+    }
+   ]
+  },
+  {
+   "name": "Communication & Soft Skills",
+   "url": "https://www.toppertube.online/category/communication-and-soft-skills",
+   "description": "Public speaking, communication, confidence and personal development talks and lessons.",
+   "channels": [
+    {
+     "name": "Toastmasters International",
+     "url": "https://www.toppertube.online/channel/Toastmasters%20International"
+    },
+    {
+     "name": "TEDx Talks",
+     "url": "https://www.toppertube.online/channel/TEDx%20Talks"
+    },
+    {
+     "name": "Vinh Giang",
+     "url": "https://www.toppertube.online/channel/Vinh%20Giang"
+    },
+    {
+     "name": "Charisma on Command",
+     "url": "https://www.toppertube.online/channel/Charisma%20on%20Command"
+    },
+    {
+     "name": "Simon Sinek",
+     "url": "https://www.toppertube.online/channel/Simon%20Sinek"
+    },
+    {
+     "name": "Communication Coach Alex Lyon",
+     "url": "https://www.toppertube.online/channel/Communication%20Coach%20Alex%20Lyon"
+    },
+    {
+     "name": "Sandeep Maheshwari",
+     "url": "https://www.toppertube.online/channel/Sandeep%20Maheshwari"
+    }
+   ]
+  },
+  {
+   "name": "Politics & Geography",
+   "url": "https://www.toppertube.online/category/politics-and-geography",
+   "description": "How countries, governments and borders work, explained through maps, history and current events.",
+   "channels": [
+    {
+     "name": "CGP Grey",
+     "url": "https://www.toppertube.online/channel/CGP%20Grey"
+    },
+    {
+     "name": "PolyMatter",
+     "url": "https://www.toppertube.online/channel/PolyMatter"
+    },
+    {
+     "name": "Visual Politik EN",
+     "url": "https://www.toppertube.online/channel/Visual%20Politik%20EN"
+    },
+    {
+     "name": "Caspian Report",
+     "url": "https://www.toppertube.online/channel/Caspian%20Report"
+    },
+    {
+     "name": "TLDR News Global",
+     "url": "https://www.toppertube.online/channel/TLDR%20News%20Global"
+    }
+   ]
+  },
+  {
+   "name": "Law",
+   "url": "https://www.toppertube.online/category/law",
+   "description": "Legal news, case explanations and law-school lectures.",
+   "channels": [
+    {
+     "name": "LiveLaw",
+     "url": "https://www.toppertube.online/channel/LiveLaw"
+    },
+    {
+     "name": "Linking Laws",
+     "url": "https://www.toppertube.online/channel/Linking%20Laws"
+    },
+    {
+     "name": "Legal Eagle",
+     "url": "https://www.toppertube.online/channel/Legal%20Eagle"
+    },
+    {
+     "name": "Harvard Law School",
+     "url": "https://www.toppertube.online/channel/Harvard%20Law%20School"
+    }
+   ]
+  },
+  {
+   "name": "Music & Arts",
+   "url": "https://www.toppertube.online/category/music-and-arts",
+   "description": "Music theory, instruments, drawing and painting lessons for beginners and improvers.",
+   "channels": [
+    {
+     "name": "Adam Neely",
+     "url": "https://www.toppertube.online/channel/Adam%20Neely"
+    },
+    {
+     "name": "Rick Beato",
+     "url": "https://www.toppertube.online/channel/Rick%20Beato"
+    },
+    {
+     "name": "Proko",
+     "url": "https://www.toppertube.online/channel/Proko"
+    },
+    {
+     "name": "Draw with Jazza",
+     "url": "https://www.toppertube.online/channel/Draw%20with%20Jazza"
+    },
+    {
+     "name": "Justin Guitar",
+     "url": "https://www.toppertube.online/channel/Justin%20Guitar"
+    },
+    {
+     "name": "Pianote",
+     "url": "https://www.toppertube.online/channel/Pianote"
+    },
+    {
+     "name": "Mood Fabrics",
+     "url": "https://www.toppertube.online/channel/Mood%20Fabrics"
+    }
+   ]
+  }
+ ]
+}

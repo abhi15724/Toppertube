@@ -1,5 +1,5 @@
 // GET /watch/<id>  (rewritten to /api/watch?id=<id> in vercel.json)
-// Serves the normal app page (public/index.html) with the lesson's own title, description, canonical address, share tags, VideoObject
+// Serves the normal app page (public/app.html) with the lesson's own title, description, canonical address, share tags, VideoObject
 // markup and readable text already filled in, so search engines and AI assistants see a real page per lesson. The app then loads as usual
 // and shows the lesson at the same address, /watch/<id>.
 // Facts come from lib/videos.index.json, written at deploy time by scripts/build-feed.js, so this never uses YouTube quota.
@@ -26,7 +26,7 @@ function addRows(rows) {   // rows: [id, title, channel, category, publishedAt, 
 // (the app page and /feed.json) from the site itself, so the page still comes out right.
 async function load() {
   if (!TPL) {
-    try { TPL = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'); }
+    try { TPL = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.html'), 'utf8'); }
     catch (e) { TPL = await (await fetch(SITE + '/')).text(); }
   }
   if (!IDX) {
@@ -52,13 +52,24 @@ function categoryOf(channel) {
   return CHCAT.get(nk(channel)) || null;
 }
 async function adopt(id) {
-  if (!process.env.YT_API_KEY || IDX.by.has(id)) return;
+  if (IDX.by.has(id)) return;
+  let row = null;
   try {
-    const x = (await require('../lib/catalog').fetchVideos([id])).get(id);
-    if (!x || !x.embeddable || !x.available || x.seconds < 240) return;
-    const category = categoryOf(x.channel); if (!category) return;
-    const text = String(x.description || '').replace(/https?:\/\/\S+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
-    addRows([[id, x.title, x.channel, category, x.publishedAt, x.seconds, x.views, text]]);
+    let x = null;
+    if (process.env.YT_API_KEY) { try { x = (await require('../lib/catalog').fetchVideos([id])).get(id); } catch (e) { console.warn('videos.list failed, trying oEmbed:', e.message); } }
+    if (x) {
+      if (!x.embeddable || !x.available || x.seconds < 240) return;
+      const category = categoryOf(x.channel); if (!category) return;
+      const text = String(x.description || '').replace(/https?:\/\/\S+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
+      row = [id, x.title, x.channel, category, x.publishedAt, x.seconds, x.views, text];
+    } else {
+      // no quota needed: YouTube's oEmbed gives the title and channel, which is enough to recognise one of our channels
+      const r = await fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + id), { signal: AbortSignal.timeout(6000) });
+      if (!r.ok) return;
+      const d = await r.json(); const category = categoryOf(d.author_name); if (!category || !d.title) return;
+      row = [id, d.title, d.author_name, category, '', 0, 0, ''];
+    }
+    addRows([row]);
   } catch (e) { console.warn('adopt failed:', e.message); }
 }
 
@@ -92,10 +103,10 @@ function render(id) {
   set(/<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${thumb}">`);
 
   const ld = { '@context': 'https://schema.org', '@graph': [
-    { '@type': 'VideoObject', name: title, description: clean || desc, thumbnailUrl: [thumb], uploadDate: publishedAt, duration: isoDur(seconds),
+    ...(publishedAt ? [{ '@type': 'VideoObject', name: title, description: clean || desc, thumbnailUrl: [thumb], uploadDate: publishedAt, duration: isoDur(seconds),
       embedUrl: `https://www.youtube.com/embed/${id}`, url: canonical, isFamilyFriendly: true,
       interactionStatistic: { '@type': 'InteractionCounter', interactionType: { '@type': 'WatchAction' }, userInteractionCount: viewCount },
-      isPartOf: { '@type': 'WebSite', name: 'Toppertube', url: SITE + '/' } },
+      isPartOf: { '@type': 'WebSite', name: 'Toppertube', url: SITE + '/' } }] : []),
     { '@type': 'BreadcrumbList', itemListElement: [['Home', '/'], [category, `/category/${slug(category)}`], [title, `/watch/${id}`]].map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b[0], item: SITE + b[1] })) }] };
   set(/<\/head>/, `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>\n</head>`);
 
@@ -104,7 +115,7 @@ function render(id) {
 <section class="seo" id="seo-intro">
 <p><a href="/">Toppertube</a> › <a href="/category/${slug(category)}">${esc(category)}</a></p>
 <h1>${esc(title)}</h1>
-<p>${esc(channel)} · ${esc(category)} · ${human(seconds)} · ${views(viewCount)} views · published ${esc(String(publishedAt).slice(0, 10))}</p>
+<p>${[esc(channel), esc(category), seconds ? human(seconds) : '', viewCount ? views(viewCount) + ' views' : '', publishedAt ? 'published ' + esc(String(publishedAt).slice(0, 10)) : ''].filter(Boolean).join(' · ')}</p>
 <p><a href="https://www.youtube.com/watch?v=${id}"><img src="${thumb}" width="480" height="360" alt="${esc(title)}"></a></p>
 ${clean ? `<p>${esc(clean)}</p>` : ''}
 <p>Watch this lesson free on Toppertube, take notes beside the video, and add it to a course to track your progress and earn a certificate.</p>

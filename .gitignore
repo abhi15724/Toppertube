@@ -2,3 +2,9 @@
 .env.local
 .vercel
 node_modules
+site/node_modules
+site/dist
+public/landing.html
+public/blog.html
+public/blog/
+public/_site/

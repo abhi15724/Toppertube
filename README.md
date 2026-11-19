@@ -5,7 +5,7 @@ No logins: likes, history, playlists, notes, courses and recommendations are sav
 Use Settings > Download backup to move them to another device.
 
 ## Files
-- public/            the website (index.html, app.js, courses.js, certificate.js, favicon files)
+- public/            the website (app.html is the app, landing.html and blog* are built from site/,  app.js, courses.js, certificate.js, favicon files)
 - api/               feed (all videos), channel (a channel's whole library), search, video, videos, playlist, courses
 - lib/catalog.js     talks to the YouTube Data API v3
 - channels.json      the channel list: name + category, optionally a handle, id or a fixed playlist
@@ -107,7 +107,7 @@ public/favicon.png and favicon-32.png come from your T logo image. The header ke
 ## SEO
 `scripts/build-seo.js` runs at deploy time (first part of `buildCommand`). The app uses #/hash routes that search engines cannot index one by
 one, so the script writes real pages from channels.json: /categories, /category/<name> (one per category), /about (with FAQ markup), plus
-`sitemap.xml`, `llms.txt` and the crawlable intro block inside index.html (between the `seo:start` / `seo:end` markers; the app replaces it
+`sitemap.xml`, `llms.txt` and the crawlable intro block inside app.html (between the `seo:start` / `seo:end` markers; the app replaces it
 when it loads). `robots.txt` welcomes search and AI crawlers and points to the sitemap; `og-image.png` is the share image.
 After a deploy: add the site in Google Search Console and Bing Webmaster Tools, submit https://www.toppertube.online/sitemap.xml, and use
 "Request indexing" on the home page. Editing channels.json is enough to refresh every category page on the next deploy.

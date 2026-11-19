@@ -1,0 +1,175 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Base from '../layouts/Base.astro';
+import { getPosts, fmtDate } from '../lib/posts.js';
+
+const SITE = 'https://www.toppertube.online';
+const slug = s => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+// Real numbers from channels.json (the build runs inside site/, so the file is one folder up)
+let channels = [];
+try { channels = JSON.parse(fs.readFileSync(path.join(process.cwd(), '..', 'channels.json'), 'utf8')); } catch (e) {}
+const cats = new Map();
+for (const c of channels) cats.set(c.category, (cats.get(c.category) || 0) + 1);
+const nCh = channels.length ? Math.floor(channels.length / 25) * 25 : 300;
+const nCat = cats.size || 20;
+const EMOJI = { 'Science & Maths': '🔬', 'School (India)': '🏫', 'Exam Prep': '🎯', 'Programming & Tech': '💻', 'AI': '🤖', 'History & GK': '🏛️', 'Business & Finance': '💼', 'Languages': '🗣️', 'Commerce & Accounts': '🧾', 'Pharmacy': '💊', 'Podcasts': '🎙️', 'Electronics & Hardware': '🔌', 'Stock Market & Investing': '📈', 'Communication & Soft Skills': '💬', 'Politics & Geography': '🌍', 'Law': '⚖️', 'Music & Arts': '🎨' };
+const subjects = [...cats].map(([name, n]) => ({ name, n, emoji: EMOJI[name] || '📚', href: '/category/' + slug(name) }));
+const posts = getPosts().slice(0, 3);
+
+const faq = [
+  ['Is Toppertube really free?', 'Yes. Watching lessons, making courses, taking notes and earning certificates are all free, and you do not need an account or a payment card.'],
+  ['Do I have to sign up?', 'No. Your courses, notes, likes and progress are saved in your own browser on your own device, so nothing needs a login.'],
+  ['Where do the videos come from?', 'Every video is hosted by YouTube and belongs to its creator. Toppertube links to them and plays them through YouTube’s own player, and credits the original channel.'],
+  ['How do I get a certificate?', 'Make a course from a playlist, a long video or your own list of lessons, then finish every lesson. A certificate with a verification code appears after the last one. It confirms that you completed the course on Toppertube. It is not an accredited qualification.'],
+  ['Can I make a course from one long video?', 'Yes. If the video has chapters, each chapter becomes a named lesson. If not, the video is split into equal lessons that you can rename.']
+];
+
+const ld = [
+  { '@type': 'WebSite', '@id': SITE + '/#website', url: SITE + '/', name: 'Toppertube', alternateName: ['Topper Tube', 'toppertube.online'], inLanguage: 'en',
+    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: SITE + '/search/{search_term_string}' }, 'query-input': 'required name=search_term_string' },
+    publisher: { '@id': SITE + '/#org' } },
+  { '@type': 'Organization', '@id': SITE + '/#org', name: 'Toppertube', url: SITE + '/', logo: { '@type': 'ImageObject', url: SITE + '/favicon-512.png', width: 512, height: 512 } },
+  { '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }
+];
+---
+<Base
+  title="Toppertube – Free Online Courses, Learning Videos & Certificates"
+  description={`Learn free on Toppertube: ${nCh}+ trusted YouTube channels in ${nCat} subjects. Build courses from any playlist, take notes beside the video and earn certificates. No sign-up.`}
+  path="/"
+  jsonLd={ld}
+>
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <p class="eyebrow">Free · No sign-up · Made for learners</p>
+        <h1>Learn anything, free. Turn YouTube lessons into <span class="hl">real courses</span>.</h1>
+        <p class="lead">Toppertube gathers the best educational channels in one place, then adds what YouTube leaves out: lessons in order, a progress bar, notes beside the video and certificates you can verify.</p>
+        <div class="btns">
+          <a class="btn" href="/start">Start learning free</a>
+          <a class="btn2" href="#subjects">Browse subjects</a>
+        </div>
+        <ul class="trust">
+          <li><b>{nCh}+</b> trusted channels</li>
+          <li><b>{nCat}</b> subjects</li>
+          <li><b>100%</b> free</li>
+        </ul>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="mock">
+          <div class="mock-top"><span></span><span></span><span></span></div>
+          <div class="mock-video"><div class="play"></div></div>
+          <p class="mock-title">Calculus made clear</p>
+          <p class="mock-sub">Course · 8 lessons · 62% complete</p>
+          <div class="bar"><i></i></div>
+          <ul class="mock-list">
+            <li class="done">1. Limits, step by step</li>
+            <li class="done">2. What a derivative means</li>
+            <li class="now">3. The chain rule</li>
+          </ul>
+        </div>
+        <div class="badge-cert"><b>🎓 Certificate</b><small>Verified with a code</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="subjects">
+    <div class="wrap">
+      <div class="sec-head"><p class="eyebrow">Subjects</p><h2>Pick a subject and start watching</h2><p>From school lessons and exam prep to programming, AI and finance, taught by channels people already trust.</p></div>
+      <ul class="grid subj">
+        {subjects.map(s => (
+          <li><a class="card subject" href={s.href}><span class="ic" aria-hidden="true">{s.emoji}</span><b>{s.name}</b><small>{s.n} channel{s.n === 1 ? '' : 's'}</small></a></li>
+        ))}
+      </ul>
+      <p class="more"><a href="/categories">See all subjects and channels →</a></p>
+    </div>
+  </section>
+
+  <section id="how" class="alt">
+    <div class="wrap">
+      <div class="sec-head"><p class="eyebrow">How it works</p><h2>From a playlist to a certificate in three steps</h2></div>
+      <ol class="grid steps">
+        <li class="card"><span class="num">1</span><h3>Pick your lessons</h3><p>Choose a channel, a playlist or a long video. You can also paste any YouTube link.</p></li>
+        <li class="card"><span class="num">2</span><h3>Learn with tools that help</h3><p>Watch with notes beside the video, timestamps, likes, playlists and a study timer.</p></li>
+        <li class="card"><span class="num">3</span><h3>Finish and get certified</h3><p>Complete every lesson to earn a certificate with a code anyone can check.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><p class="eyebrow">Features</p><h2>Everything a self-learner needs</h2></div>
+      <ul class="grid">
+        <li class="card"><div class="ic" aria-hidden="true">🎓</div><h3>Courses from any video</h3><p>Playlists become modules. Chapters become named lessons. Long videos without chapters are split into equal lessons.</p></li>
+        <li class="card"><div class="ic" aria-hidden="true">📝</div><h3>Notes that stay with you</h3><p>Write while you watch, add timestamps, then download as text, Markdown or PDF.</p></li>
+        <li class="card"><div class="ic" aria-hidden="true">📊</div><h3>Progress you can see</h3><p>Track completed lessons, resume where you stopped and watch your study time grow.</p></li>
+        <li class="card"><div class="ic" aria-hidden="true">🏅</div><h3>Verifiable certificates</h3><p>Every certificate has a code that can be checked on the verify page.</p></li>
+        <li class="card"><div class="ic" aria-hidden="true">🔒</div><h3>Private by design</h3><p>No account. Your data lives in your browser and goes nowhere else.</p></li>
+        <li class="card"><div class="ic" aria-hidden="true">⚡</div><h3>Fast on any device</h3><p>Light pages, installable on your phone, and smooth video through YouTube’s player.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  {posts.length > 0 && (
+    <section class="alt">
+      <div class="wrap">
+        <div class="sec-head"><p class="eyebrow">From the blog</p><h2>Study smarter, not longer</h2><p>Practical guides on learning, note-taking, memory and building habits that last.</p></div>
+        <ul class="grid posts">
+          {posts.map(p => (
+            <li><a class="card post" href={`/blog/${p.slug}`}><small>{fmtDate(p.date)} · {p.minutes} min read</small><h3>{p.title}</h3><p>{p.description}</p></a></li>
+          ))}
+        </ul>
+        <p class="more"><a href="/blog">Read all articles →</a></p>
+      </div>
+    </section>
+  )}
+
+  <section id="faq">
+    <div class="wrap narrow">
+      <div class="sec-head"><p class="eyebrow">FAQ</p><h2>Questions people ask</h2></div>
+      <div class="faq">
+        {faq.map(([q, a]) => (<div class="card"><h3>{q}</h3><p>{a}</p></div>))}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="band">
+        <h2>Your next skill is one playlist away</h2>
+        <p>Free lessons, real structure and a certificate at the end. No account needed.</p>
+        <a class="btn white" href="/start">Start learning free</a>
+      </div>
+      <p class="credit">Videos are hosted by YouTube and belong to their creators. Toppertube links to them and credits each channel.</p>
+    </div>
+  </section>
+</Base>
+
+<style is:global>
+.hero{padding:clamp(28px,6vw,72px) 0 clamp(36px,6vw,64px);background:radial-gradient(900px 380px at 85% -10%,var(--tint),transparent 70%)}
+.hero-in{display:grid;gap:40px;align-items:center;grid-template-columns:1.1fr .9fr}
+.hl{background:linear-gradient(90deg,var(--brand),var(--brand2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.trust{display:flex;gap:10px 30px;flex-wrap:wrap;list-style:none;padding:0;margin:28px 0 0;color:var(--mut);font-size:15px}.trust b{display:block;font-size:1.7rem;color:var(--ink);line-height:1.1}
+.hero-art{position:relative;display:flex;justify-content:center}
+.mock{width:min(100%,380px);border:1px solid var(--line);border-radius:22px;padding:16px;background:var(--card);box-shadow:var(--shadow);transform:rotate(1.5deg)}
+.mock-top{display:flex;gap:6px;margin-bottom:12px}.mock-top span{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.mock-video{aspect-ratio:16/9;border-radius:14px;background:linear-gradient(135deg,#2b2f3a,#12141a);display:grid;place-items:center}
+.play{width:0;height:0;border-left:22px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px;opacity:.92}
+.mock-title{font-weight:800;margin:14px 0 2px}.mock-sub{margin:0 0 10px;color:var(--mut);font-size:13.5px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:62%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand2))}
+.mock-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px;font-size:14px}.mock-list li{padding:8px 10px;border-radius:10px;background:var(--bg);color:var(--mut)}
+.mock-list .done:before{content:"✓ ";color:#1a9d4b;font-weight:800}.mock-list .now{background:var(--tint);color:var(--ink);font-weight:600}
+.badge-cert{position:absolute;right:0;bottom:-16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);transform:rotate(-2deg)}.badge-cert b{display:block}.badge-cert small{color:var(--mut)}
+@media(max-width:860px){.hero-in{grid-template-columns:1fr}.hero-art{order:-1;margin-bottom:10px}.mock{transform:none}.badge-cert{right:6px}}
+.alt{background:color-mix(in srgb,var(--card) 70%,var(--bg));border-block:1px solid var(--line)}
+.subj{grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr))}
+.subject{display:block}.subject b{display:block;margin-top:2px}.subject small{color:var(--mut)}
+.more{margin:22px 0 0;font-weight:700}
+.steps{counter-reset:s}.num{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;margin-bottom:14px}
+.post small{color:var(--mut);font-size:13px}.post h3{margin:8px 0 8px;font-size:1.15rem}
+.narrow{max-width:780px}.faq{display:grid;gap:12px}.faq .card{padding:18px 20px}
+.band{text-align:center;padding:clamp(28px,6vw,56px);border-radius:26px;background:linear-gradient(135deg,#d62839,#ff6b4a);color:#fff}
+.band h2{color:#fff;margin:0 0 8px}.band p{margin:0 auto 22px;max-width:46ch;opacity:.95}.btn.white{background:#fff;color:#b3162a;box-shadow:none}
+.credit{margin:18px 0 0;text-align:center;color:var(--mut);font-size:13.5px}
+</style>

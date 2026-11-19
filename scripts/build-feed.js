@@ -1,5 +1,5 @@
 // Runs at deploy time (see "buildCommand" in vercel.json). It does three things, none of which can fail the deploy:
-//  1. stamps a version on the script files in index.html, so browsers can cache them for a year and still get every update;
+//  1. stamps a version on the script files in app.html, so browsers can cache them for a year and still get every update;
 //  2. writes public/feed.json, a ready-made copy of the lesson list that is served instantly as a static file;
 //  3. writes lib/videos.index.json (lesson facts for the /watch/<id> pages and the sitemaps) and channels.resolved.json, so the server does not have to look channels up again at run time.
 // Needs YT_API_KEY in the Vercel environment (steps 2 and 3 are skipped without it).
@@ -7,7 +7,7 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 
 try {
-  const htmlFile = process.env.HTML_PATH || path.join(root, 'public', 'index.html');
+  const htmlFile = process.env.HTML_PATH || path.join(root, 'public', 'app.html');
   const stamp = Date.now().toString(36);
   const html = fs.readFileSync(htmlFile, 'utf8');
   fs.writeFileSync(htmlFile, html.replace(/((?:app|courses|certificate)\.js\?v=)[^"]*/g, '$1' + stamp));

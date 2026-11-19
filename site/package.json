@@ -1,0 +1,9 @@
+{
+  "name": "toppertube-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Toppertube landing page and blog, built with Astro. scripts/build-site.js builds it during the Vercel deploy and copies the result into public/.",
+  "scripts": { "dev": "astro dev", "build": "astro build" },
+  "dependencies": { "astro": "^4.16.0" }
+}

@@ -1,10 +1,10 @@
 {
-  "buildCommand": "node scripts/build-feed.js; node scripts/build-seo.js; node scripts/build-routes.js",
+  "buildCommand": "node scripts/build-feed.js; node scripts/build-site.js; node scripts/build-seo.js; node scripts/build-routes.js",
   "outputDirectory": "public",
   "functions": {
     "api/*.js": {
       "maxDuration": 60,
-      "includeFiles": "{public/index.html,lib/videos.index.json}"
+      "includeFiles": "{public/app.html,lib/videos.index.json,channels.json,channels.resolved.json}"
     }
   },
   "headers": [
@@ -71,7 +71,7 @@
       ]
     },
     {
-      "source": "/(sitemap.*\\.xml|robots.txt|llms.txt)",
+      "source": "/(sitemap.*\\.xml|robots.txt|llms.txt|llms-full.txt|catalog.json)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -106,12 +106,21 @@
   ],
   "rewrites": [
     {
+      "source": "/",
+      "has": [{ "type": "cookie", "key": "tt_seen" }],
+      "destination": "/app.html"
+    },
+    {
+      "source": "/",
+      "destination": "/landing.html"
+    },
+    {
       "source": "/watch/:id",
       "destination": "/api/watch?id=:id"
     },
     {
       "source": "/((?!api/|category/|.*\\..*).+)",
-      "destination": "/index.html"
+      "destination": "/app.html"
     }
   ]
 }

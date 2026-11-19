@@ -921,6 +921,7 @@ $('#q').addEventListener('input', () => {
 });
 $('#sf').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; if (/youtu\.?be/i.test(q)) { openAny(q); return; } navTo('#/search/' + encodeURIComponent(q)); };
 $('#nav').append(...NAV.map(([k, t, i]) => el('a', { href: '#/' + k }, ico(i), t)));
+$('#nav').append(el('a', { href: '/blog' }, ico('pen'), 'Blog'));
 $('#nav').append(el('a', { href: '/about' }, ico('info'), 'About Toppertube'));   // the plain about page (public/about.html) is a normal page, not part of the app
 addEventListener('popstate', route);
 addEventListener('hashchange', () => { if (location.hash.startsWith('#/')) { history.replaceState(null, '', toPath(location.hash)); route(); } });   // old /#/... links and bookmarks
@@ -969,3 +970,6 @@ async function getJSON(url) { const r = await fetch(url), d = await r.json(); if
 })();
 // remembers thumbnails, the lesson list and scripts on the device (see sw.js): repeat visits open much faster
 if ('serviceWorker' in navigator) addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+// The home address shows the landing page to new visitors and the app to people who have been here (see the "/" rewrites in vercel.json).
+try { document.cookie = 'tt_seen=1; path=/; max-age=31536000; samesite=lax'; } catch (e) {}
+if (location.pathname === '/start') history.replaceState(null, '', '/' + location.search);
