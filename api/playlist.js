@@ -1,5 +1,5 @@
 // GET /api/playlist?list=<id> -> { title, channel, items, total, truncated }  (up to 300 videos, in playlist order)
-const { playlistPage, explain } = require('../lib/catalog');
+const { playlistPage, explain, reasonOf } = require('../lib/catalog');
 module.exports = async (req, res) => {
   const list = String(req.query.list || '');
   if (!/^[\w-]{10,60}$/.test(list)) return res.status(400).json({ error: 'That is not a valid playlist link.' });
@@ -9,6 +9,6 @@ module.exports = async (req, res) => {
     res.status(200).json(out);
   } catch (e) {
     console.error(e);
-    res.status(e.status || 503).json({ error: e.status === 404 ? 'Playlist not found, or it is private.' : explain(e) });
+    res.status(e.status || 503).json({ error: e.status === 404 ? 'Playlist not found, or it is private.' : explain(e), reason: reasonOf(e) });
   }
 };

@@ -1,5 +1,5 @@
 // GET /api/video?v=<id> -> { video, chapters }  (any public video; chapters parsed from its description)
-const { videoPage, explain } = require('../lib/catalog');
+const { videoPage, explain, reasonOf } = require('../lib/catalog');
 module.exports = async (req, res) => {
   const v = String(req.query.v || '');
   if (!/^[\w-]{11}$/.test(v)) return res.status(400).json({ error: 'That is not a valid YouTube video.' });
@@ -10,6 +10,6 @@ module.exports = async (req, res) => {
     res.status(200).json(out);
   } catch (e) {
     console.error(e);
-    res.status(e.status || 503).json({ error: e.status === 404 ? 'Video not found, or it is private.' : explain(e) });
+    res.status(e.status || 503).json({ error: e.status === 404 ? 'Video not found, or it is private.' : explain(e), reason: reasonOf(e) });
   }
 };

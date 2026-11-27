@@ -15,7 +15,7 @@ function parseYT(input) {
 }
 async function api(path) {
   const r = await fetch(path), d = await r.json();
-  if (!r.ok) throw new Error(d.error || 'Request failed');
+  if (!r.ok) { const e = new Error(d.error || 'Request failed'); e.status = r.status; e.reason = d.reason; throw e; }
   return d;
 }
 // Make a video known to the app (so it can be played, liked, noted, saved) even if it is not in our catalog.
@@ -63,11 +63,52 @@ const mkCourse = (title, lessons, src, ref, note) => ({ id: uid(), title: (title
 async function courseFromPlaylist(input, title) {
   const { list } = parseYT(input);
   if (!list) throw new Error('Paste a YouTube playlist link (it contains list=…).');
-  const d = await api('/api/playlist?list=' + encodeURIComponent(list));
+  let d;
+  try { d = await api('/api/playlist?list=' + encodeURIComponent(list)); }
+  catch (e) {
+    if (e.status === 404 || e.status === 400) throw e;          // a private or invalid playlist: nothing to fall back to
+    d = await playlistWithoutQuota(list);                        // YouTube's data service is busy or out of quota: read the playlist another way
+    if (!d.items.length) throw e;
+  }
   if (!d.items.length) throw new Error('No playable videos were found in that playlist.');
   const lessons = d.items.map(v => { ingest(v); return { v: v.id, t: v.title, s: 0, d: v.seconds }; });
-  const note = (d.truncated ? 'Only the first 300 videos were imported. ' : '') + (d.items.length < d.total ? `${d.total - d.items.length} private or removed videos were skipped.` : '');
+  const note = (d.noLengths ? 'Lesson lengths are not shown for this course. ' : '') + (d.truncated ? 'Only the first 300 videos were imported. ' : '') + (d.items.length < d.total ? `${d.total - d.items.length} private or removed videos were skipped.` : '');
   return mkCourse(title || d.title, lessons, 'playlist', list, note.trim());
+}
+// The video ids of a playlist, read from YouTube's own player (loaded invisibly). No API key or quota needed. Resolves to [] if it cannot be read.
+function playlistIdsViaPlayer(list) {
+  return loadYT().then(() => new Promise(res => {
+    const box = document.createElement('div'); box.setAttribute('aria-hidden', 'true');
+    box.style.cssText = 'position:fixed;left:-9999px;top:0;width:220px;height:130px;overflow:hidden';
+    const host = document.createElement('div'); box.append(host); document.body.append(box);
+    let done = false, pl, timer;
+    const fin = ids => { if (done) return; done = true; clearInterval(timer); try { pl.destroy(); } catch (e) {} box.remove(); res(ids || []); };
+    pl = new YT.Player(host, { host: 'https://www.youtube-nocookie.com', playerVars: { listType: 'playlist', list, controls: 0, playsinline: 1, rel: 0 }, events: {
+      onReady: () => {
+        let ticks = 0;
+        timer = setInterval(() => {
+          let ids = null; try { ids = pl.getPlaylist(); } catch (e) {}
+          if (ids && ids.length) return fin(ids.slice());
+          if (++ticks > 60) fin([]);
+        }, 250);
+      },
+      onError: () => fin([]) } });
+    setTimeout(() => fin([]), 20000);
+  })).catch(() => []);
+}
+// Backup for making a course from a playlist when YouTube's data service has no quota left: ids from the player, titles from /api/oembed.
+async function playlistWithoutQuota(list) {
+  const ids = [...new Set(await playlistIdsViaPlayer(list))].slice(0, 300);
+  if (!ids.length) return { items: [] };
+  const items = []; let title = '';
+  for (let i = 0; i < ids.length; i += 40) {
+    try {
+      const d = await api('/api/oembed?ids=' + ids.slice(i, i + 40).join(',') + (i === 0 ? '&list=' + encodeURIComponent(list) : ''));
+      if (i === 0) title = d.title || '';
+      for (const v of d.items) items.push({ id: v.id, title: v.title, channel: v.channel, category: 'YouTube', publishedAt: new Date().toISOString(), seconds: 0, views: 0, embeddable: true, blocked: false, available: true });
+    } catch (e) { /* skip this batch */ }
+  }
+  return { title: title || 'Playlist course', channel: '', items, total: ids.length, truncated: false, noLengths: true };
 }
 // Length of a video from YouTube's own player, loaded invisibly. Resolves to 0 if it cannot be read.
 function probeDuration(id) {
