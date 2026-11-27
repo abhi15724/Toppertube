@@ -29,7 +29,7 @@ async function openAny(input) {
   if (!video && list) { navTo('#/courses?list=' + encodeURIComponent(input)); return; }
   if (!video) { alert('That does not look like a YouTube link.'); return; }
   try {
-    const d = await api('/api/video?v=' + video);
+    const d = await api('/api/yt?op=video&v=' + video);
     ingest(d.video); save(); navTo('#/watch/' + video);
   } catch (e) { alert(e.message); }
 }
@@ -64,7 +64,7 @@ async function courseFromPlaylist(input, title) {
   const { list } = parseYT(input);
   if (!list) throw new Error('Paste a YouTube playlist link (it contains list=…).');
   let d;
-  try { d = await api('/api/playlist?list=' + encodeURIComponent(list)); }
+  try { d = await api('/api/yt?op=playlist&list=' + encodeURIComponent(list)); }
   catch (e) {
     if (e.status === 404 || e.status === 400) throw e;          // a private or invalid playlist: nothing to fall back to
     d = await playlistWithoutQuota(list);                        // YouTube's data service is busy or out of quota: read the playlist another way
@@ -103,7 +103,7 @@ async function playlistWithoutQuota(list) {
   const items = []; let title = '';
   for (let i = 0; i < ids.length; i += 40) {
     try {
-      const d = await api('/api/oembed?ids=' + ids.slice(i, i + 40).join(',') + (i === 0 ? '&list=' + encodeURIComponent(list) : ''));
+      const d = await api('/api/yt?op=oembed&ids=' + ids.slice(i, i + 40).join(',') + (i === 0 ? '&list=' + encodeURIComponent(list) : ''));
       if (i === 0) title = d.title || '';
       for (const v of d.items) items.push({ id: v.id, title: v.title, channel: v.channel, category: 'YouTube', publishedAt: new Date().toISOString(), seconds: 0, views: 0, embeddable: true, blocked: false, available: true });
     } catch (e) { /* skip this batch */ }
@@ -135,7 +135,7 @@ function probeDuration(id) {
 async function courseFromVideo(input, title) {
   const { video } = parseYT(input);
   if (!video) throw new Error('Paste a YouTube video link.');
-  const d = await api('/api/video?v=' + video), v = d.video;
+  const d = await api('/api/yt?op=video&v=' + video), v = d.video;
   if (d.limited || !v.seconds) {   // the data service could not give length/chapters: ask YouTube's own player for the length instead (no quota needed), then split into equal parts
     const secs = await probeDuration(video);
     if (!secs) throw new Error('We could not read this video\u2019s length just now. Please check your connection and try again in a moment.');
@@ -158,7 +158,7 @@ async function courseFromVideo(input, title) {
 async function courseFromLinks(text, title) {
   const ids = [...new Set(text.split(/[\s,]+/).map(x => parseYT(x).video).filter(Boolean))].slice(0, 50);
   if (!ids.length) throw new Error('Paste at least one YouTube video link.');
-  const d = await api('/api/videos?ids=' + ids.join(',')), by = new Map(d.items.map(v => [v.id, v]));
+  const d = await api('/api/yt?op=videos&ids=' + ids.join(',')), by = new Map(d.items.map(v => [v.id, v]));
   const lessons = ids.map(id => by.get(id)).filter(Boolean).map(v => { ingest(v); return { v: v.id, t: v.title, s: 0, d: v.seconds }; });
   if (!lessons.length) throw new Error('None of those videos could be found. They may be private or removed.');
   return mkCourse(title, lessons, 'links', '', lessons.length < ids.length ? `${ids.length - lessons.length} videos were skipped (private or removed).` : '');

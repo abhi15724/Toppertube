@@ -310,7 +310,7 @@ PAGES.podcasts = () => {
   const missing = PODS.filter(p => !CAT.some(v => v.category === 'Podcasts' && p.test.test(v.channel)));
   if (!missing.length) return;
   const box = el('div', null, msg('Loading podcast episodes from YouTube…')); main.append(box);
-  Promise.all(missing.map(p => fetch('/api/search?q=' + encodeURIComponent(p.q)).then(r => r.ok ? r.json() : { items: [] })
+  Promise.all(missing.map(p => fetch('/api/yt?op=search&q=' + encodeURIComponent(p.q)).then(r => r.ok ? r.json() : { items: [] })
     .then(d => (d.items || []).filter(v => v.seconds >= 1200 && (p.test.test(v.channel) || p.test.test(v.title))).slice(0, 12)).catch(() => [])))
     .then(groups => {
       const items = groups.flat().filter(v => !S.bad.includes(v.id));
@@ -384,7 +384,7 @@ PAGES.channel = arg => {
       : lib.done ? `Whole library loaded (${lib.items.length} lessons)` : lib.started ? `${lib.items.length} lessons loaded` : 'Showing recent uploads');
   };
   async function loadPage() {
-    const r = await fetch('/api/channel?c=' + encodeURIComponent(info.id) + (lib.next ? '&t=' + encodeURIComponent(lib.next) : ''));
+    const r = await fetch('/api/yt?op=channel&c=' + encodeURIComponent(info.id) + (lib.next ? '&t=' + encodeURIComponent(lib.next) : ''));
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Request failed');
     const byId = new Map(lib.items.map(v => [v.id, v]));
@@ -437,7 +437,7 @@ PAGES.search = arg => {
       let d = YTC.get(q);
       if (!d) {
         const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);
-        let r; try { r = await fetch('/api/search?q=' + encodeURIComponent(q), { signal: ctl.signal }); } finally { clearTimeout(tm); }
+        let r; try { r = await fetch('/api/yt?op=search&q=' + encodeURIComponent(q), { signal: ctl.signal }); } finally { clearTimeout(tm); }
         d = await r.json().catch(() => ({})); if (!r.ok || !Array.isArray(d.items)) { const e = new Error(d.error || 'Could not search YouTube right now.'); e.status = r.status; throw e; }
         YTC.set(q, d);
       }
@@ -813,7 +813,7 @@ PAGES.watch = (id, q) => {
   if (!v) {   // not in the feed (for example a /watch/<id> link to another video): ask the server for it once
     const gone = () => main.replaceChildren(msg('This lesson is no longer in the feed.'), el('a', { class: 'btn', href: '#/home' }, 'Back to home'));
     main.append(msg('Loading lesson…'));
-    getJSON('/api/video?v=' + encodeURIComponent(id)).then(d => {
+    getJSON('/api/yt?op=video&v=' + encodeURIComponent(id)).then(d => {
       if (!d.video || !location.pathname.includes(id)) throw new Error('gone');
       d.video.ext = true; remember(d.video); route();
     }).catch(() => { if (location.pathname.includes(id)) gone(); });

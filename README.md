@@ -124,3 +124,8 @@ If a video's owner turns off embedding, the video can still be added to a course
 page shows a card with a "Watch on YouTube" button (opens a new tab, at the chapter's start time for chapter lessons). In a course the lesson keeps
 its notes box, Mark complete, the 3-second next-lesson countdown and the certificate link; because the video plays on YouTube, the app cannot see
 progress, so the learner presses "I've watched it" (or Mark complete) and study time is not counted for that lesson.
+
+## Serverless function limit
+The free Vercel plan allows 12 serverless functions per deployment. Every file directly in `api/` is one function, so the YouTube-backed requests
+(search, channel, video, videos, playlist, oembed) share one function, `api/yt.js`, which calls the handlers in `lib/h/`. Call them as
+`/api/yt?op=search&q=…`, `/api/yt?op=video&v=…` and so on. Add new endpoints as another `op` in `api/yt.js` instead of a new file in `api/`.
